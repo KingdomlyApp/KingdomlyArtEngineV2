@@ -8,6 +8,7 @@ Router.get("/", async (req, res) => {
 });
 
 Router.get("/status", async (req, res) => {
+  console.log("Health check");
   res.status(200).send({ message: "OK" });
 });
 
