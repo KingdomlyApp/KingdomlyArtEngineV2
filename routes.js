@@ -12,6 +12,6 @@ Router.get("/status", async (req, res) => {
   res.status(200).send({ message: "OK" });
 });
 
-Router.post("/generateCollection", GenerateCollection);
+Router.post("/", GenerateCollection);
 
 module.exports = Router;
