@@ -16,6 +16,8 @@ const basePath = process.cwd();
 const path = require("path");
 const FirebaseDB = require("../dist/utils/lib/FirebaseDB").default;
 
+const firebase = new FirebaseDB();
+
 async function GenerateCollection(req, res) {
   if (
     req.body.projectName != null &&
@@ -38,7 +40,6 @@ async function GenerateCollection(req, res) {
     }
 
     // Update Firebase to isGenerating = true
-    const firebase = new FirebaseDB();
     await firebase.updateIsGenerating(projectId);
 
     //Step 1: Create unique folder from the given project id
