@@ -1,0 +1,22 @@
+{
+  "name": "kingdomlyartgenv2",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "node index.js"
+  },
+  "author": "Kingdomly Team",
+  "license": "ISC",
+  "description": "Art Engine based from hashlips_art_engine_2.0 that Kingdomly transformed into an API.",
+  "dependencies": {
+    "@hashlips-lab/art-engine": "^2.0.0-alpha7",
+    "@types/node": "^20.14.10",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "firebase-admin": "^12.1.1",
+    "nft.storage": "^7.1.1",
+    "request": "^2.88.2",
+    "sharp": "^0.31.1",
+    "typescript": "^5.5.3"
+  }
+}
