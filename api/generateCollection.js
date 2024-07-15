@@ -24,6 +24,10 @@ async function GenerateCollection(req, res) {
     req.body.dir != null &&
     req.body.dnaList != null
   ) {
+    res.status(200).send({
+      message: "Started Art Generation!",
+    });
+
     const { projectName, projectId, description } = req.body;
 
     const dir = new Map(Object.entries(req.body.dir));
@@ -160,12 +164,6 @@ async function GenerateCollection(req, res) {
         );
       });
     }
-
-    return res.status(200).send({
-      // message: "Success: Metadata Url: " + url,
-      metadata_cid: metadata_cid,
-      img_cid: img_cid,
-    });
   } else {
     return res.status(400).send({
       message: "Generation failed! Missing inputs!",
