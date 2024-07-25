@@ -7,13 +7,14 @@ import GeneratorInterface, {
   import { DNA } from "@/custom/types/DNA"
   
   interface Assets {
-    path: string,
+    path?: string,
     layername: string
     value: string
   }
   
   interface ImageDnaInterface {
     id: number,
+    ooos_path?: string,
     assets: Assets[]
   }
   
@@ -40,27 +41,56 @@ import GeneratorInterface, {
   
       return assets;
     }
+
+    private getAssetsOOOs = (layers: {layer_name: string, trait_name: string}[]) => {
+      const assets = []
+      for(var layer of layers){
+        assets.push({
+          layername: layer.layer_name,
+          value: layer.trait_name
+        })
+      }
+  
+      return assets;
+    }
+    
   
     public async generate(): Promise<ItemsAttributes<ImageDnaInterface>> {
   
       let items: ItemsAttributes<ImageDnaInterface> = {};
       const inputsData = this.inputsManager.get(this.dataKey);
       let layerInputs = [];
-  
-      var index = 0;
+
+      for(const [key, value] of this.dnaList){
+        if(key === "one_of_ones_0" ||
+          key === "one_of_ones_1" ||
+          key === "one_of_ones_2"){
+            layerInputs = inputsData.filter((item: any) => item.kind === "one_of_ones");
+            for(const currentDnas of value){
+              const ooos_items = layerInputs[0].elements.filter((item: any) => currentDnas.ooos?.layers[0].trait_name === item.name);
+              items[parseInt(currentDnas.name.split("#")[1])] = [{
+                kind: "OneOfOnes",
+                data:{
+                  id: parseInt(currentDnas.name.split("#")[1]),
+                  ooos_path: ooos_items[0].path,
+                  assets: this.getAssetsOOOs(currentDnas.ooos?.layers!)
+                }
+              }]
+            }
+          }
+      }
 
       for(const [key, value] of this.dir){
         for(const currentDir of value){
           layerInputs = inputsData.filter((item: any) => item.kind === currentDir.collection_name);
           for(const currentDnas of this.dnaList.get(key)!){
-            items[index] = [{
+            items[parseInt(currentDnas.name.split("#")[1])] = [{
               kind: "ImageGenerator@v1",
               data: {
-                id: +index + 1,
+                id: parseInt(currentDnas.name.split("#")[1]),
                 assets: this.getAssets(currentDnas.dna, layerInputs)
               }
             }]
-            index++;
           }
         }
       }

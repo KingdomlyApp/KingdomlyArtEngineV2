@@ -14,11 +14,6 @@ interface AttributesInterface{
 }
 
 interface MetaDataListInterface {
-  // name: string,
-  // description: string,
-  // image: string,
-  // date: string,
-  // attributes: AttributesInterface[]
   path: string
 }
 
@@ -28,6 +23,7 @@ export class MetadataRenderer
   attributesGetter!: ItemsDataManager["getAttributes"];
   private name!: string;
   private description!: string;
+  private ooosPath!: string;
   tempRenderDir!: string;
   
 
@@ -35,12 +31,14 @@ export class MetadataRenderer
     constructorProps: {
       name?: string
       description?: string;
+      ooosPath?: string;
     } = {}
   ) {
     this.name = constructorProps.name ? constructorProps.name : "";
     this.description = constructorProps.description
       ? constructorProps.description
       : "";
+      this.ooosPath = constructorProps.ooosPath ? constructorProps.ooosPath : "";
   }
 
   public async init(props: RendererInitPropsInterface): Promise<void> {
@@ -50,13 +48,6 @@ export class MetadataRenderer
 
   private getAttributes = (assets: any[]) => {
     const tempData = []
-    
-    // assets.forEach(asset => {
-    //   return tempData.push({
-    //     trait_type: asset.layername,
-    //     value: asset.value
-    //   })
-    // })
 
     for(var asset of assets){
       tempData.push({
@@ -80,15 +71,15 @@ export class MetadataRenderer
 
       if(foundImage) {
         let metadata = {
-          name: this.name + " #" + (+id + 1),
+          name: this.name + " #" + (+id),
           description: this.description,
-          image: path.join(this.tempRenderDir, `${+id + 1}.png`),
+          image: path.join(this.tempRenderDir, `${+id}.png`),
           date: Date.now(),
           attributes: this.getAttributes(foundImage.data.assets)
 
         }
 
-        const outputPath = path.join(this.tempRenderDir, `${+id + 1}.json`)
+        const outputPath = path.join(this.tempRenderDir, `${+id}.json`)
         fs.writeFileSync(
           outputPath,
           JSON.stringify(metadata, null, 2)
@@ -98,11 +89,34 @@ export class MetadataRenderer
           {
             kind: "MetadataRenderer@v1",
             data: {
-              // name: metadata.name,
-              // description: metadata.description,
-              // image: metadata.image,
-              // date: metadata.date.toString(),
-              // attributes: metadata.attributes
+              path: outputPath
+            }
+          }
+        ]
+      }
+
+      const foundOOOs = (assets as ItemPropertiesInterface<any>[]).find((asset: ItemPropertiesInterface<any>) => asset.kind == "OneOfOnes");
+
+      if(foundOOOs) {
+        let metadata = {
+          name: this.name + " #" + (+id),
+          description: this.description,
+          image: path.join(this.ooosPath, `${foundOOOs?.data.assets[0].value}.png`),
+          date: Date.now(),
+          attributes: this.getAttributes(foundOOOs.data.assets)
+
+        }
+
+        const outputPath = path.join(this.tempRenderDir, `${+id}.json`)
+        fs.writeFileSync(
+          outputPath,
+          JSON.stringify(metadata, null, 2)
+        );
+
+        renders[id] = [
+          {
+            kind: "MetadataRenderer@v1",
+            data: {
               path: outputPath
             }
           }

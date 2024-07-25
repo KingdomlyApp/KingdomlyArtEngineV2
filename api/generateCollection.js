@@ -95,6 +95,48 @@ async function GenerateCollection(req, res) {
       }
     }
 
+    for (const [key, dnas] of dnaList) {
+      if (
+        key === "one_of_ones_0" ||
+        key === "one_of_ones_1" ||
+        key === "one_of_ones_2"
+      ) {
+        const dirPath = path.join(directoryPath, "/one_of_ones");
+        if (fs.existsSync(dirPath)) {
+          fs.rmdirSync(dirPath, { recursive: true });
+        }
+        fs.mkdirSync(dirPath, { recursive: true });
+        for (const ooos of Array.from(dnas)) {
+          const filePath = path.join(
+            dirPath,
+            `${ooos.ooos.layers[0].trait_name}.png`
+          );
+          const file = fs.createWriteStream(filePath);
+
+          downloadPromises.push(
+            new Promise((resolve, reject) => {
+              request
+                .get(ooos.ooos.url)
+                .on("error", (err) => {
+                  console.error(err);
+                  reject(err);
+                })
+                .pipe(file)
+                .on("finish", () => {
+                  file.close();
+                  resolve();
+                })
+                .on("error", (err) => {
+                  fs.unlinkSync(filePath); // Delete the file on error
+                  console.error(err);
+                  reject(err);
+                });
+            })
+          );
+        }
+      }
+    }
+
     await Promise.all(downloadPromises);
 
     //Step 3: Art Engine
@@ -114,6 +156,7 @@ async function GenerateCollection(req, res) {
         new MetadataRenderer({
           name: projectName,
           description: description,
+          ooosPath: `${projectPath}/layers/one_of_ones`,
         }),
 
         new ImageRenderer({}),

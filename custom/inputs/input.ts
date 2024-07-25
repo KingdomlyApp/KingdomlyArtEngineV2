@@ -54,7 +54,7 @@ import { DIR } from "@/custom/types/dir/DIR";
           for(const layer of currentDir.layers){
             layers[index] = {
               kind: currentDir.collection_name,
-              id: +i,
+              id: +index,
               elements: this.getElements(`${this.layersPath}/${currentDir.collection_name}/${layer.name}`),
               name: layer.name
             }
@@ -62,6 +62,15 @@ import { DIR } from "@/custom/types/dir/DIR";
           }
         }
       }
+
+      layers[index] = {
+        kind: "one_of_ones",
+        id: +index,
+        elements: this.getElements(`${this.layersPath}/one_of_ones`),
+        name: "one_of_ones"
+      }
+
+
       return layers;
     }
   }

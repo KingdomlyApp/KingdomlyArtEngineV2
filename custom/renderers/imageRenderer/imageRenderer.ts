@@ -49,7 +49,7 @@ export class ImageRenderer
             throw new Error(`Couldn't find any supported set of attributes for the current item: ${id}`);
         }
 
-        const outputPath = path.join(this.tempRenderDir, `${+id + 1}.png`)
+        const outputPath = path.join(this.tempRenderDir, `${+id}.png`)
         const temp_assets: { path: string}[] = foundImage.data.assets.map((obj: {path: string, layername: string, value: string}) => ({path: obj.path}));
 
         const tempImage = await sharp(temp_assets[0].path).metadata();
