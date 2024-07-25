@@ -9,6 +9,7 @@ import ImageProcessorInterface from "../../processors/image-processing-interface
 import { CACHE } from "@hashlips-lab/art-engine";
 import { ItemPropertiesInterface } from "@hashlips-lab/art-engine/dist/utils/managers/items-data/items-data.interface";
 import { SharpImageProcessor } from "../../utils/processors/sharp"
+import FirebaseDB from "../../utils/lib/FirebaseDB";
 const sharp = require("sharp");
 
 interface ImageListInterface {
@@ -21,10 +22,16 @@ export class ImageRenderer
   attributesGetter!: ItemsDataManager["getAttributes"];
   private tempRenderDir!: string;
   private imageProcessor!: ImageProcessorInterface;
+  private projectId: string;
+  private firebaseDB: FirebaseDB;
 
   constructor(constructorProps: {
+    projectId: string;
+    firebaseDB: FirebaseDB;
     imageProcessor?: ImageProcessorInterface;
   }) {
+    this.projectId = constructorProps.projectId;
+    this.firebaseDB = constructorProps.firebaseDB;
     this.imageProcessor = new SharpImageProcessor();
 
   }
@@ -40,6 +47,11 @@ export class ImageRenderer
     if(!fs.existsSync(this.tempRenderDir)){
       fs.mkdirSync(this.tempRenderDir);
     }
+
+    const totalCount = Object.entries(this.attributesGetter()).length;
+    const updateInterval = Math.floor(totalCount/10);
+
+    let processedCount = 0;
 
     for (const [id, assets] of Object.entries(this.attributesGetter())){
       const foundImage = (assets as ItemPropertiesInterface<any>[]).find((asset: ItemPropertiesInterface<any>) => asset.kind == "ImageGenerator@v1");
@@ -81,6 +93,17 @@ export class ImageRenderer
           ]
         }
 
+        processedCount++;
+      }
+
+      const foundOOOs = (assets as ItemPropertiesInterface<any>[]).find((asset: ItemPropertiesInterface<any>) => asset.kind == "OneOfOnes");
+
+      if(foundOOOs){
+        processedCount++;
+      }
+
+      if(processedCount % updateInterval === 0 || processedCount === totalCount){
+        await this.firebaseDB.updateGenerationPercent(this.projectId, Math.ceil((processedCount/totalCount)*80))
       }
     }
     return renders;

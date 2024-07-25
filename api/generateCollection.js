@@ -159,7 +159,7 @@ async function GenerateCollection(req, res) {
           ooosPath: `${projectPath}/layers/one_of_ones`,
         }),
 
-        new ImageRenderer({}),
+        new ImageRenderer({ projectId: projectId, firebaseDB: firebase }),
       ],
 
       exporters: [new ImageExporter(projectName)],

@@ -57,4 +57,16 @@ export default class NewFirebaseDB
     }
     await docRef.set(updateData, {merge: true});
   }
+
+  async updateGenerationPercent(projectId: string, generationPercent: number): Promise<void>{
+    const docRef = this.db.collection('test_projects').doc(projectId);
+
+    const updateData = {
+      contract_details: {
+        generation_percent: generationPercent
+      }
+    }
+
+    await docRef.set(updateData, {merge: true});
+  }
 }
