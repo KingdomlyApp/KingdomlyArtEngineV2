@@ -94,6 +94,7 @@ async function GenerateCollection(req, res) {
         }
       }
     }
+
     await Promise.all(downloadPromises);
 
     //Step 3: Art Engine
@@ -146,9 +147,7 @@ async function GenerateCollection(req, res) {
 
     await fileProcessingPromise;
 
-    // Step 5: Upload the metadata to Firebase
-
-    // Step 6: Return the CID and delete tmp/projectId folder
+    // Step 5: Return the CID and delete tmp/projectId folder
     const cid_data = fs.readFileSync(`${projectPath}/output/cid.json`);
     const { img_cid, metadata_cid } = JSON.parse(cid_data);
 
