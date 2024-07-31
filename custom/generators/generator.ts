@@ -23,7 +23,7 @@ import GeneratorInterface, {
   {
     inputsManager!: InputsManager;
 
-    constructor(private dataKey: string, private dir: Map<string, DIR[]>, private dnaList: Map<string, DNA[]>){}
+    constructor(private dataKey: string, private dir: Map<string, DIR>, private dnaList: Map<string, DNA[]>){}
   
     public async init(props: GeneratorInitPropsInterface): Promise<void> {
       this.inputsManager = props.inputsManager;
@@ -81,8 +81,7 @@ import GeneratorInterface, {
       }
 
       for(const [key, value] of this.dir){
-        for(const currentDir of value){
-          layerInputs = inputsData.filter((item: any) => item.kind === currentDir.collection_name);
+          layerInputs = inputsData.filter((item: any) => item.kind === value.collection_name);
           for(const currentDnas of this.dnaList.get(key)!){
             items[parseInt(currentDnas.name.split("#")[1])] = [{
               kind: "ImageGenerator@v1",
@@ -92,7 +91,6 @@ import GeneratorInterface, {
               }
             }]
           }
-        }
       }
       return items;
     }

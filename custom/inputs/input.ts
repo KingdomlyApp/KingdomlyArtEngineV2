@@ -21,7 +21,7 @@ import { DIR } from "@/custom/types/dir/DIR";
   
   export class LayersInput implements InputInterface<LayerInterface[]> {
 
-    constructor(private layersPath: string, private dir: Map<string, DIR[]>){}
+    constructor(private layersPath: string, private dir: Map<string, DIR>){}
   
     public async init(props: InputInitPropsInterface): Promise<void> {}
   
@@ -49,25 +49,27 @@ import { DIR } from "@/custom/types/dir/DIR";
       var index = 0;
 
       for(const [key, value] of this.dir){
-        for(const currentDir of value){
-          let i = 0;
-          for(const layer of currentDir.layers){
+        // for(const currentDir of value){
+        //   let i = 0;
+          for(const layer of value.layers){
             layers[index] = {
-              kind: currentDir.collection_name,
+              kind: value.collection_name,
               id: +index,
-              elements: this.getElements(`${this.layersPath}/${currentDir.collection_name}/${layer.name}`),
+              elements: this.getElements(`${this.layersPath}/${value.collection_name}/${layer.name}`),
               name: layer.name
             }
             index++;
           }
-        }
+        // }
       }
 
-      layers[index] = {
-        kind: "one_of_ones",
-        id: +index,
-        elements: this.getElements(`${this.layersPath}/one_of_ones`),
-        name: "one_of_ones"
+      if(fs.existsSync(`${this.layersPath}/one_of_ones`)){
+        layers[index] = {
+          kind: "one_of_ones",
+          id: +index,
+          elements: this.getElements(`${this.layersPath}/one_of_ones`),
+          name: "one_of_ones"
+        }
       }
 
 

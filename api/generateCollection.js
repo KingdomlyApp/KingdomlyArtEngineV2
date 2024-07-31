@@ -52,47 +52,47 @@ async function GenerateCollection(req, res) {
     //Step2: Download the layers from the request body to the local layers folder
     const downloadPromises = [];
     for (const [key, dirs] of dir) {
-      for (const currDir of Array.from(dirs)) {
-        const dirPath = path.join(directoryPath, `${currDir.collection_name}`);
-        if (fs.existsSync(dirPath)) {
-          fs.rmdirSync(dirPath, { recursive: true });
+      // for (const currDir of Array.from(dirs)) {
+      const dirPath = path.join(directoryPath, `${dirs.collection_name}`);
+      if (fs.existsSync(dirPath)) {
+        fs.rmdirSync(dirPath, { recursive: true });
+      }
+      fs.mkdirSync(dirPath, { recursive: true });
+
+      for (const layer of Array.from(dirs.layers)) {
+        const layerPath = path.join(dirPath, `${layer.name}`);
+        if (fs.existsSync(layerPath)) {
+          fs.rmdirSync(layerPath, { recursive: true });
         }
-        fs.mkdirSync(dirPath, { recursive: true });
+        fs.mkdirSync(layerPath, { recursive: true });
 
-        for (const layer of Array.from(currDir.layers)) {
-          const layerPath = path.join(dirPath, `${layer.name}`);
-          if (fs.existsSync(layerPath)) {
-            fs.rmdirSync(layerPath, { recursive: true });
-          }
-          fs.mkdirSync(layerPath, { recursive: true });
+        for (const trait of Array.from(layer.traits)) {
+          const filePath = path.join(layerPath, `${trait.name}.png`);
+          const file = fs.createWriteStream(filePath);
 
-          for (const trait of Array.from(layer.traits)) {
-            const filePath = path.join(layerPath, `${trait.name}.png`);
-            const file = fs.createWriteStream(filePath);
-
-            downloadPromises.push(
-              new Promise((resolve, reject) => {
-                request
-                  .get(trait.img_link)
-                  .on("error", (err) => {
-                    console.error(err);
-                    reject(err);
-                  })
-                  .pipe(file)
-                  .on("finish", () => {
-                    file.close();
-                    resolve();
-                  })
-                  .on("error", (err) => {
-                    fs.unlinkSync(filePath); // Delete the file on error
-                    console.error(err);
-                    reject(err);
-                  });
-              })
-            );
-          }
+          downloadPromises.push(
+            new Promise((resolve, reject) => {
+              request
+                .get(trait.img_link)
+                .on("error", (err) => {
+                  console.error(err);
+                  reject(err);
+                })
+                .pipe(file)
+                .on("finish", () => {
+                  file.close();
+                  resolve();
+                })
+                .on("error", (err) => {
+                  fs.unlinkSync(filePath); // Delete the file on error
+                  console.error(err);
+                  reject(err);
+                });
+            })
+          );
         }
       }
+      // }
     }
 
     for (const [key, dnas] of dnaList) {
