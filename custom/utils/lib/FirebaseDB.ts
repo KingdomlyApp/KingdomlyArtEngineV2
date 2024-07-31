@@ -31,7 +31,7 @@ export default class NewFirebaseDB
   }
 
   async updateIsGenerating(projectId: string): Promise<void>{
-    const docRef = this.db.collection('test_projects').doc(projectId);
+    const docRef = this.db.collection('projects').doc(projectId);
     
     const updateData = {
       contract_details: {
@@ -44,7 +44,7 @@ export default class NewFirebaseDB
   }
 
   async updateDoneGenerating(projectId: string, img_cid: string, metadata_cid: string): Promise<void>{
-    const docRef = this.db.collection('test_projects').doc(projectId);
+    const docRef = this.db.collection('projects').doc(projectId);
     
     const updateData = {
       contract_details: {
@@ -52,14 +52,14 @@ export default class NewFirebaseDB
         metadata_cid: metadata_cid,
         is_generating: false,
         generation_percent: 100
-
-      }
+      },
+      status: 7
     }
     await docRef.set(updateData, {merge: true});
   }
 
   async updateGenerationPercent(projectId: string, generationPercent: number): Promise<void>{
-    const docRef = this.db.collection('test_projects').doc(projectId);
+    const docRef = this.db.collection('projects').doc(projectId);
 
     const updateData = {
       contract_details: {
