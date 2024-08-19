@@ -23,7 +23,6 @@ async function GenerateCollection(req, res) {
     req.body.projectName != null &&
     req.body.projectId != null &&
     req.body.description != null &&
-    req.body.dir != null &&
     req.body.dnaList != null
   ) {
     res.status(200).send({
@@ -32,10 +31,13 @@ async function GenerateCollection(req, res) {
 
     const { projectName, projectId, description } = req.body;
 
-    const dir = new Map(Object.entries(req.body.dir));
     const dnaList = new Map(Object.entries(req.body.dnaList));
 
-    if (!dir || !dnaList || !projectName) {
+    // if (!dir || !dnaList || !projectName) {
+    //   return res.status(400).send({ error: "check entered fields." });
+    // }
+
+    if (!dnaList || !projectName) {
       return res.status(400).send({ error: "check entered fields." });
     }
 
@@ -50,56 +52,65 @@ async function GenerateCollection(req, res) {
     }
 
     //Step2: Download the layers from the request body to the local layers folder
+    let dir = [];
     const downloadPromises = [];
-    for (const [key, dirs] of dir) {
-      // for (const currDir of Array.from(dirs)) {
-      const dirPath = path.join(directoryPath, `${dirs.collection_name}`);
-      if (fs.existsSync(dirPath)) {
-        fs.rmdirSync(dirPath, { recursive: true });
-      }
-      fs.mkdirSync(dirPath, { recursive: true });
 
-      for (const layer of Array.from(dirs.layers)) {
-        const layerPath = path.join(dirPath, `${layer.name}`);
-        if (fs.existsSync(layerPath)) {
-          fs.rmdirSync(layerPath, { recursive: true });
+    if (req.body.dir) {
+      dir = new Map(Object.entries(req.body.dir));
+
+      for (const [key, dirs] of dir) {
+        // for (const currDir of Array.from(dirs)) {
+        const dirPath = path.join(directoryPath, `${dirs.collection_name}`);
+        if (fs.existsSync(dirPath)) {
+          fs.rmdirSync(dirPath, { recursive: true });
         }
-        fs.mkdirSync(layerPath, { recursive: true });
+        fs.mkdirSync(dirPath, { recursive: true });
 
-        for (const trait of Array.from(layer.traits)) {
-          const filePath = path.join(layerPath, `${trait.name}.png`);
-          const file = fs.createWriteStream(filePath);
+        for (const layer of Array.from(dirs.layers)) {
+          const layerPath = path.join(dirPath, `${layer.name}`);
+          if (fs.existsSync(layerPath)) {
+            fs.rmdirSync(layerPath, { recursive: true });
+          }
+          fs.mkdirSync(layerPath, { recursive: true });
 
-          downloadPromises.push(
-            new Promise((resolve, reject) => {
-              request
-                .get(trait.img_link)
-                .on("error", (err) => {
-                  console.error(err);
-                  reject(err);
-                })
-                .pipe(file)
-                .on("finish", () => {
-                  file.close();
-                  resolve();
-                })
-                .on("error", (err) => {
-                  fs.unlinkSync(filePath); // Delete the file on error
-                  console.error(err);
-                  reject(err);
-                });
-            })
-          );
+          for (const trait of Array.from(layer.traits)) {
+            const filePath = path.join(layerPath, `${trait.name}.png`);
+            const file = fs.createWriteStream(filePath);
+
+            downloadPromises.push(
+              new Promise((resolve, reject) => {
+                request
+                  .get(trait.img_link)
+                  .on("error", (err) => {
+                    console.error(err);
+                    reject(err);
+                  })
+                  .pipe(file)
+                  .on("finish", () => {
+                    file.close();
+                    resolve();
+                  })
+                  .on("error", (err) => {
+                    fs.unlinkSync(filePath); // Delete the file on error
+                    console.error(err);
+                    reject(err);
+                  });
+              })
+            );
+          }
         }
+        // }
       }
-      // }
+    } else {
+      dir = new Map();
     }
 
     for (const [key, dnas] of dnaList) {
       if (
         key === "one_of_ones_0" ||
         key === "one_of_ones_1" ||
-        key === "one_of_ones_2"
+        key === "one_of_ones_2" ||
+        key === "one_of_ones"
       ) {
         const dirPath = path.join(directoryPath, "/one_of_ones");
         if (fs.existsSync(dirPath)) {

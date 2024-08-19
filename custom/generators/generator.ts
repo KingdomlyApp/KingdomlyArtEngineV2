@@ -64,7 +64,8 @@ import GeneratorInterface, {
       for(const [key, value] of this.dnaList){
         if(key === "one_of_ones_0" ||
           key === "one_of_ones_1" ||
-          key === "one_of_ones_2"){
+          key === "one_of_ones_2" ||
+          key === "one_of_ones"){
             layerInputs = inputsData.filter((item: any) => item.kind === "one_of_ones");
             for(const currentDnas of value){
               const ooos_items = layerInputs[0].elements.filter((item: any) => currentDnas.ooos?.layers[0].trait_name === item.name);
