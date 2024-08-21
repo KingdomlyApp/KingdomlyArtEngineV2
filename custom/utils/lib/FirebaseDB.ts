@@ -69,4 +69,18 @@ export default class NewFirebaseDB
 
     await docRef.set(updateData, {merge: true});
   }
+
+  async updateErrorGenerating(projectId: string, error_message: string): Promise<void>{
+    const docRef = this.db.collection('projects').doc(projectId);
+
+    const updateData = {
+      contract_details: {
+        is_generating: false,
+        generation_percent: 0,
+        error_message: error_message
+      }
+    }
+
+    await docRef.set(updateData, {merge: true})
+  }
 }
