@@ -27,11 +27,6 @@ import { DIR } from "@/custom/types/dir/DIR";
   
     private getElements = (path: string) => {
       return fs.readdirSync(path).filter((item: string) => !/(^|\/)\.[^\/\.]/g.test(item)).map((i: string, index: number) => {
-        if(i.includes("-")){
-          throw new Error(
-            `layer name can not contain dashes, please fix: ${i}`
-          );
-        }
         return {
           id: index,
           name: i.slice(0, -4),
