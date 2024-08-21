@@ -38,6 +38,10 @@ async function GenerateCollection(req, res) {
     // }
 
     if (!dnaList || !projectName) {
+      await firebase.updateErrorGenerating(
+        projectId,
+        "Dna List or Project Name is undefined. Check entered fields!"
+      );
       return res.status(400).send({ error: "check entered fields." });
     }
 
