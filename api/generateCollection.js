@@ -31,8 +31,6 @@ async function GenerateCollection(req, res) {
 
     const { projectName, projectId, description } = req.body;
 
-    const dnaList = new Map(Object.entries(req.body.dnaList));
-
     // if (!dir || !dnaList || !projectName) {
     //   return res.status(400).send({ error: "check entered fields." });
     // }
@@ -44,6 +42,8 @@ async function GenerateCollection(req, res) {
       );
       return res.status(400).send({ error: "check entered fields." });
     }
+
+    const dnaList = new Map(Object.entries(req.body.dnaList));
 
     // Update Firebase to isGenerating = true
     await firebase.updateIsGenerating(projectId);
