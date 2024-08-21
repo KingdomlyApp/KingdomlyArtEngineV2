@@ -23,7 +23,7 @@ async function GenerateCollection(req, res) {
     req.body.projectName != null &&
     req.body.projectId != null &&
     req.body.description != null &&
-    req.body.dnaList.size === 0
+    Object.entries(req.body.dnaList).length !== 0
   ) {
     // if (!dir || !dnaList || !projectName) {
     //   return res.status(400).send({ error: "check entered fields." });
