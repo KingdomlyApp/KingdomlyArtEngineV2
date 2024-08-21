@@ -25,12 +25,6 @@ async function GenerateCollection(req, res) {
     req.body.description != null &&
     req.body.dnaList != null
   ) {
-    res.status(200).send({
-      message: "Started Art Generation!",
-    });
-
-    const { projectName, projectId, description } = req.body;
-
     // if (!dir || !dnaList || !projectName) {
     //   return res.status(400).send({ error: "check entered fields." });
     // }
@@ -40,8 +34,17 @@ async function GenerateCollection(req, res) {
         projectId,
         "Dna List or Project Name is undefined. Check entered fields!"
       );
+      console.log(
+        "Dna List or Project Name is undefined. Check entered fields!"
+      );
       return res.status(400).send({ error: "check entered fields." });
+    } else {
+      res.status(200).send({
+        message: "Started Art Generation!",
+      });
     }
+
+    const { projectName, projectId, description } = req.body;
 
     const dnaList = new Map(Object.entries(req.body.dnaList));
 
