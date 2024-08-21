@@ -23,7 +23,7 @@ async function GenerateCollection(req, res) {
     req.body.projectName != null &&
     req.body.projectId != null &&
     req.body.description != null &&
-    req.body.dnaList != null
+    req.body.dnaList.size === 0
   ) {
     // if (!dir || !dnaList || !projectName) {
     //   return res.status(400).send({ error: "check entered fields." });
@@ -32,9 +32,6 @@ async function GenerateCollection(req, res) {
     if (!req.body.dnaList || !req.body.projectName) {
       await firebase.updateErrorGenerating(
         projectId,
-        "Dna List or Project Name is undefined. Check entered fields!"
-      );
-      console.log(
         "Dna List or Project Name is undefined. Check entered fields!"
       );
       return res.status(400).send({ error: "check entered fields." });
@@ -226,6 +223,14 @@ async function GenerateCollection(req, res) {
       });
     }
   } else {
+    await firebase.updateErrorGenerating(
+      req.body.projectId,
+      "Dna List or Project Name is undefined. Check entered fields!"
+    );
+    console.log(
+      req.body.projectId,
+      ": Dna List or Project Name is undefined. Check entered fields!"
+    );
     return res.status(400).send({
       message: "Generation failed! Missing inputs!",
     });
