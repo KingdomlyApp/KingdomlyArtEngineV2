@@ -21,23 +21,15 @@ export class MetadataRenderer
   implements RendererInterface<MetaDataListInterface>
 {
   attributesGetter!: ItemsDataManager["getAttributes"];
-  private name!: string;
-  private description!: string;
   private ooosPath!: string;
   tempRenderDir!: string;
   
 
   constructor(
     constructorProps: {
-      name?: string
-      description?: string;
       ooosPath?: string;
     } = {}
   ) {
-    this.name = constructorProps.name ? constructorProps.name : "";
-    this.description = constructorProps.description
-      ? constructorProps.description
-      : "";
       this.ooosPath = constructorProps.ooosPath ? constructorProps.ooosPath : "";
   }
 
@@ -71,8 +63,8 @@ export class MetadataRenderer
 
       if(foundImage) {
         let metadata = {
-          name: this.name + " #" + (+id),
-          description: this.description,
+          name: foundImage.data.token_name,
+          description: foundImage.data.token_description,
           image: path.join(this.tempRenderDir, `${+id}.png`),
           date: Date.now(),
           attributes: this.getAttributes(foundImage.data.assets)
@@ -99,8 +91,8 @@ export class MetadataRenderer
 
       if(foundOOOs) {
         let metadata = {
-          name: this.name + " #" + (+id),
-          description: this.description,
+          name: foundOOOs.data.token_name,
+          description: foundOOOs.data.token_description,
           image: path.join(this.ooosPath, `${foundOOOs?.data.assets[0].value}.png`),
           date: Date.now(),
           attributes: this.getAttributes(foundOOOs.data.assets)

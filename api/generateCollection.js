@@ -17,6 +17,8 @@ const path = require("path");
 const FirebaseDB = require("../dist/utils/lib/FirebaseDB").default;
 
 const firebase = new FirebaseDB();
+const { SharpImageProcessor } = require("../dist/utils/processors/sharp");
+const imageProcessor = new SharpImageProcessor();
 
 async function GenerateCollection(req, res) {
   if (
@@ -63,8 +65,10 @@ async function GenerateCollection(req, res) {
       dir = new Map(Object.entries(req.body.dir));
 
       for (const [key, dirs] of dir) {
-        // for (const currDir of Array.from(dirs)) {
-        const dirPath = path.join(directoryPath, `${dirs.collection_name}`);
+        const dirPath = path.join(
+          directoryPath,
+          `temp/${dirs.collection_name}`
+        );
         if (fs.existsSync(dirPath)) {
           fs.rmdirSync(dirPath, { recursive: true });
         }
@@ -103,7 +107,6 @@ async function GenerateCollection(req, res) {
             );
           }
         }
-        // }
       }
     } else {
       dir = new Map();
@@ -154,6 +157,28 @@ async function GenerateCollection(req, res) {
 
     await Promise.all(downloadPromises);
 
+    //Step2.1 Resize the images
+    const imageProcessor = new SharpImageProcessor();
+    for (const [key, dirs] of dir) {
+      const dirPath = path.join(directoryPath, `temp/${dirs.collection_name}`);
+      const outputPath = path.join(directoryPath, `${dirs.collection_name}`);
+
+      for (const layer of dirs.layers) {
+        const layerPath = path.join(dirPath, `${layer.name}`);
+        const outpuatLayerPath = path.join(outputPath, `${layer.name}`);
+        if (fs.existsSync(outpuatLayerPath)) {
+          fs.rmdirSync(outpuatLayerPath, { recursive: true });
+        }
+        fs.mkdirSync(outpuatLayerPath, { recursive: true });
+        await imageProcessor.checkImageSize(
+          `${layerPath}`,
+          outpuatLayerPath,
+          1024,
+          1024
+        );
+      }
+    }
+
     //Step 3: Art Engine
     const artEngine = new ArtEngine({
       cachePath: `${projectPath}/cache`,
@@ -169,8 +194,6 @@ async function GenerateCollection(req, res) {
 
       renderers: [
         new MetadataRenderer({
-          name: projectName,
-          description: description,
           ooosPath: `${projectPath}/layers/one_of_ones`,
         }),
 

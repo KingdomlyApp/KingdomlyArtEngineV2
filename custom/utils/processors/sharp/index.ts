@@ -1,5 +1,7 @@
 import ImageProcessorInterface from "../../../processors/image-processing-interface";
 import sharp from "sharp";
+import fs from 'fs';
+import path from 'path';
 
 export class SharpImageProcessor implements ImageProcessorInterface {
   public async createImageWithLayers(createImageWithLayersProps: {
@@ -15,6 +17,7 @@ export class SharpImageProcessor implements ImageProcessorInterface {
     for (const asset of createImageWithLayersProps.assets) {
       normalizedAssets.push({
         input: asset.path,
+        inside: true
       });
     }
 
@@ -28,5 +31,33 @@ export class SharpImageProcessor implements ImageProcessorInterface {
     })
       .composite(normalizedAssets)
       .toFile(createImageWithLayersProps.outputPath);
+  }
+
+  public async checkImageSize(dirPath: string, outputPath: string, width: number, height: number) {
+    try {
+      // Read all files in the directory
+      const files = fs.readdirSync(dirPath);
+
+      // Loop through each file and process it
+      for (const file of files) {
+        const filePath = path.join(dirPath, file);
+
+        // Check if the file is an image
+        if (!/(^|\/)\.[^\/\.]/g.test(file)) {
+
+          const outputPathFile = path.join(outputPath, `${file}`); // Temporary file path
+
+          // Resize the image using Sharp
+          await sharp(filePath)
+            .resize(width, height, {
+              fit: 'inside', // Fit within the dimensions, maintaining aspect ratio
+            })
+            .toFile(outputPathFile); // Overwrite the original file
+        }
+      }
+
+    } catch (error) {
+      console.error('Error processing images:', error);
+    }
   }
 }

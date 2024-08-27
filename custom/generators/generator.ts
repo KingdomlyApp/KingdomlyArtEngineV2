@@ -16,6 +16,8 @@ import GeneratorInterface, {
     id: number,
     ooos_path?: string,
     assets: Assets[]
+    token_name: string,
+    token_description: string,
   }
   
   export class ImageGenerator
@@ -74,7 +76,9 @@ import GeneratorInterface, {
                 data:{
                   id: parseInt(currentDnas.name.split("#")[1]),
                   ooos_path: ooos_items[0].path,
-                  assets: this.getAssetsOOOs(currentDnas.ooos?.layers!)
+                  assets: this.getAssetsOOOs(currentDnas.ooos?.layers!),
+                  token_name: currentDnas.name,
+                  token_description: currentDnas.description
                 }
               }]
             }
@@ -88,7 +92,9 @@ import GeneratorInterface, {
               kind: "ImageGenerator@v1",
               data: {
                 id: parseInt(currentDnas.name.split("#")[1]),
-                assets: this.getAssets(currentDnas.dna, layerInputs)
+                assets: this.getAssets(currentDnas.dna, layerInputs),
+                token_name: currentDnas.name,
+                token_description: currentDnas.description
               }
             }]
           }
