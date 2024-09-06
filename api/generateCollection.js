@@ -136,7 +136,6 @@ async function GenerateCollection(req, res) {
             );
             const file = fs.createWriteStream(filePath);
 
-            console.log("hello");
             downloadPromises.push(
               new Promise((resolve, reject) => {
                 request
