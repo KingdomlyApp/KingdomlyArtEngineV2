@@ -112,6 +112,8 @@ async function GenerateCollection(req, res) {
       dir = new Map();
     }
 
+    let uniqueOneOfOnes = [];
+
     for (const [key, dnas] of dnaList) {
       if (
         key === "one_of_ones_0" ||
@@ -125,32 +127,37 @@ async function GenerateCollection(req, res) {
         }
         fs.mkdirSync(dirPath, { recursive: true });
         for (const ooos of Array.from(dnas)) {
-          const filePath = path.join(
-            dirPath,
-            `${ooos.ooos.layers[0].trait_name}.png`
-          );
-          const file = fs.createWriteStream(filePath);
+          // Check if oneofones is downloaded already
+          if (!uniqueOneOfOnes.includes(ooos.ooos.layers[0].trait_name)) {
+            uniqueOneOfOnes.push(ooos.ooos.layers[0].trait_name);
+            const filePath = path.join(
+              dirPath,
+              `${ooos.ooos.layers[0].trait_name}.png`
+            );
+            const file = fs.createWriteStream(filePath);
 
-          downloadPromises.push(
-            new Promise((resolve, reject) => {
-              request
-                .get(ooos.ooos.url)
-                .on("error", (err) => {
-                  console.error(err);
-                  reject(err);
-                })
-                .pipe(file)
-                .on("finish", () => {
-                  file.close();
-                  resolve();
-                })
-                .on("error", (err) => {
-                  fs.unlinkSync(filePath); // Delete the file on error
-                  console.error(err);
-                  reject(err);
-                });
-            })
-          );
+            console.log("hello");
+            downloadPromises.push(
+              new Promise((resolve, reject) => {
+                request
+                  .get(ooos.ooos.url)
+                  .on("error", (err) => {
+                    console.error(err);
+                    reject(err);
+                  })
+                  .pipe(file)
+                  .on("finish", () => {
+                    file.close();
+                    resolve();
+                  })
+                  .on("error", (err) => {
+                    fs.unlinkSync(filePath); // Delete the file on error
+                    console.error(err);
+                    reject(err);
+                  });
+              })
+            );
+          }
         }
       }
     }
@@ -233,18 +240,6 @@ async function GenerateCollection(req, res) {
     const { img_cid, metadata_cid } = JSON.parse(cid_data);
 
     await firebase.updateDoneGenerating(projectId, img_cid, metadata_cid);
-
-    if (fs.existsSync(projectPath)) {
-      fs.rmSync(projectPath, { recursive: true, force: true }, (err) => {
-        if (err) {
-          throw err;
-        }
-
-        console.log(
-          `${projectId} folder has been generated successfully and now being deleted!`
-        );
-      });
-    }
   } else {
     await firebase.updateErrorGenerating(
       req.body.projectId,
@@ -256,6 +251,18 @@ async function GenerateCollection(req, res) {
     );
     return res.status(400).send({
       message: "Generation failed! Missing inputs!",
+    });
+  }
+
+  if (fs.existsSync(projectPath)) {
+    fs.rmSync(projectPath, { recursive: true, force: true }, (err) => {
+      if (err) {
+        throw err;
+      }
+
+      console.log(
+        `${projectId} folder has been generated successfully and now being deleted!`
+      );
     });
   }
 }
