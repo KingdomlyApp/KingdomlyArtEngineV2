@@ -185,19 +185,6 @@ async function GenerateCollection(req, res) {
       }
     }
 
-    const outputPath = path.join(directoryPath, "temp/one_of_ones");
-    if (fs.existsSync(outputPath)) {
-      fs.rmdirSync(outputPath, { recursive: true });
-    }
-    fs.mkdirSync(outputPath, { recursive: true });
-
-    await imageProcessor.checkImageSize(
-      path.join(directoryPath, "/one_of_ones"),
-      outputPath,
-      2000,
-      2000
-    );
-
     //Step 3: Art Engine
     const artEngine = new ArtEngine({
       cachePath: `${projectPath}/cache`,
@@ -213,7 +200,7 @@ async function GenerateCollection(req, res) {
 
       renderers: [
         new MetadataRenderer({
-          ooosPath: `${projectPath}/layers/temp/one_of_ones`,
+          ooosPath: `${projectPath}/layers/one_of_ones`,
         }),
 
         new ImageRenderer({ projectId: projectId, firebaseDB: firebase }),
