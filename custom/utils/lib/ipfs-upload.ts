@@ -69,48 +69,11 @@ async function storeAndModifyMetadata(
         updatedMetadata.push(metadatum);
 
         return mediaFile;
-
-        // let mediaFile;
-        // let fileType = uri.media.match(/\.(\w+)$/)?.[1] || "png";
-        // let mimeType =
-        //   fileType === "mp4"
-        //     ? "video/mp4"
-        //     : `image/${fileType === "jpg" ? "jpeg" : fileType}`;
-
-        // if (binaryCache[uri.media]) {
-        //   mediaFile = new File(
-        //     [binaryCache[uri.media]],
-        //     `${uri.name}.${fileType}`,
-        //     { type: mimeType }
-        //   );
-        // } else {
-        //   if (uri.media.startsWith("data:")) {
-        //     const binaryData = convertDataURIToBinary(uri.media);
-        //     binaryCache[uri.media] = binaryData;
-        //     mediaFile = new File([binaryData], `${uri.name}.${fileType}`, {
-        //       type: mimeType,
-        //     });
-        //   } else {
-        //     const dataUrl = await convertImageToBase64(uri.media);
-        //     const binaryData = convertDataURIToBinary(dataUrl);
-        //     binaryCache[uri.media] = binaryData;
-        //     mediaFile = new File([binaryData], `${uri.name}.${fileType}`, {
-        //       type: mimeType,
-        //     });
-        //   }
-        // }
-        // metadatum.image = `ipfs://{cid}/${uri.name}.${fileType}`; // placeholder for actual CID
-        // updatedMetadata.push(metadatum);
-        // return mediaFile;
       })
     );
 
     allMedia.push(...currentMedia);
   }
-
-  // const storage = new NFTStorage({ token: NFT_STORAGE_KEY as string });
-  // const cid = await storage.storeDirectory(allMedia as any);
-
 
   const cid = await storeToIPFS(allMedia, collectionName);
 
@@ -172,106 +135,3 @@ async function storeToIPFS(files: File[], collectionName: string) {
   const cid = resData.IpfsHash;
   return cid;
 }
-
-
-// import { NFTMetadata } from "@/custom/types/NFT";
-// import { NFTStorage, File } from "nft.storage";
-// import * as fs from 'fs';
-// import dotenv from 'dotenv';
-
-// dotenv.config();
-
-// const NFT_STORAGE_KEY = process.env.NFT_STORAGE_KEY;
-
-// let convertDataURIToBinary = (dataURI: any) => {
-//   var BASE64_MARKER = ";base64,";
-//   var base64Index = dataURI.indexOf(BASE64_MARKER) + BASE64_MARKER.length;
-//   var base64 = dataURI.substring(base64Index);
-//   var buffer = Buffer.from(base64, 'base64');
-  
-//   return new Uint8Array(buffer);
-// };
-
-// const convertImageToBase64 = async (imageUrl: string) => {
-//   try {
-//     // const response = await fetch(imageUrl, { cache: "reload" });
-//     const imageBuffer = fs.readFileSync(imageUrl);
-//     const base64Image = imageBuffer.toString('base64');
-
-//     return base64Image;
-//   } catch (error) {
-//     console.error("Error converting image to base64:", error);
-//   }
-// };
-
-// async function storeImages(metadata: NFTMetadata[]) {
-//   const batchSize = 500; // Number of images to process in a single batch
-//   let batchStart = 0;
-//   let allImages = [];
-//   const binaryCache: Record<string, Uint8Array> = {}; // Cache for storing already converted binary data
-
-//   while (batchStart < metadata.length) {
-//     // Get the current batch of metadata
-//     const currentBatch = metadata.slice(batchStart, batchStart + batchSize);
-//     batchStart += batchSize;
-
-//     // Process the current batch
-//     const currentImages = await Promise.all(
-//       currentBatch.map(async (metadatum) => {
-//         const uri = {
-//           img: metadatum.image,
-//           name: metadatum.name.split("#")[1],
-//         };
-
-//         let imageFile = new File([fs.readFileSync(uri.img)], `${uri.name}.png`, { type: "image/png"});
-
-//         return imageFile;
-//       })
-//     );
-//     // Accumulate the processed images from the current batch
-//     allImages.push(...currentImages);
-//   }
-
-//   // After all batches are processed, store all images at once
-//   const storage = new NFTStorage({ token: NFT_STORAGE_KEY as string });
-//   const cid = await storage.storeDirectory(allImages as any);
-//   return cid;
-// }
-
-// async function storeMetadataJSONs(metadata: NFTMetadata[]) {
-//   //Converts Objects to Blobs and stores it in as an array
-//   const jsonBlobs = metadata.map((metadatum, i) => {
-//     const jsonBlob = new File(
-//       [JSON.stringify(metadatum)],
-//       `${metadatum.name.split("#")[1]}`,
-//       {
-//         type: "application/json",
-//       }
-//     );
-//     return jsonBlob;
-//   });
-
-//   const storage = new NFTStorage({ token: NFT_STORAGE_KEY as string });
-//   const car = await NFTStorage.encodeDirectory(jsonBlobs);
-//   const cid = await storage.storeCar(car.car);
-//   return cid;
-// }
-
-// async function updateMetadataImages(
-//   cidString: string,
-//   metadata: NFTMetadata[]
-// ) {
-//   //For each metadata file, update the image property to the CID of the image file
-//   metadata.forEach((metadatum) => {
-//     metadatum.image = `ipfs://${cidString}/${metadatum.name.split("#")[1]}.png`;
-//   });
-// }
-
-// export default async function main(metadata: NFTMetadata[]) {
-//   let img_cid = "";
-//   img_cid = await storeImages(metadata);
-//   await updateMetadataImages(img_cid, metadata);
-
-//   const metadata_cid = await storeMetadataJSONs(metadata);
-//   return { img_cid: img_cid, metadata_cid: metadata_cid, metadataList: metadata };
-// }

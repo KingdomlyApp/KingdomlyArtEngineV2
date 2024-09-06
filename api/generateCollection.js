@@ -171,19 +171,32 @@ async function GenerateCollection(req, res) {
 
       for (const layer of dirs.layers) {
         const layerPath = path.join(dirPath, `${layer.name}`);
-        const outpuatLayerPath = path.join(outputPath, `${layer.name}`);
-        if (fs.existsSync(outpuatLayerPath)) {
-          fs.rmdirSync(outpuatLayerPath, { recursive: true });
+        const outputLayerPath = path.join(outputPath, `${layer.name}`);
+        if (fs.existsSync(outputLayerPath)) {
+          fs.rmdirSync(outputLayerPath, { recursive: true });
         }
-        fs.mkdirSync(outpuatLayerPath, { recursive: true });
+        fs.mkdirSync(outputLayerPath, { recursive: true });
         await imageProcessor.checkImageSize(
           `${layerPath}`,
-          outpuatLayerPath,
+          outputLayerPath,
           1024,
           1024
         );
       }
     }
+
+    const outputPath = path.join(directoryPath, "temp/one_of_ones");
+    if (fs.existsSync(outputPath)) {
+      fs.rmdirSync(outputPath, { recursive: true });
+    }
+    fs.mkdirSync(outputPath, { recursive: true });
+
+    await imageProcessor.checkImageSize(
+      path.join(directoryPath, "/one_of_ones"),
+      outputPath,
+      2000,
+      2000
+    );
 
     //Step 3: Art Engine
     const artEngine = new ArtEngine({
@@ -200,7 +213,7 @@ async function GenerateCollection(req, res) {
 
       renderers: [
         new MetadataRenderer({
-          ooosPath: `${projectPath}/layers/one_of_ones`,
+          ooosPath: `${projectPath}/layers/temp/one_of_ones`,
         }),
 
         new ImageRenderer({ projectId: projectId, firebaseDB: firebase }),
@@ -253,16 +266,20 @@ async function GenerateCollection(req, res) {
     });
   }
 
-  if (fs.existsSync(projectPath)) {
-    fs.rmSync(projectPath, { recursive: true, force: true }, (err) => {
-      if (err) {
-        throw err;
-      }
+  if (fs.existsSync(path.join(basePath, `tmp/${req.body.projectId}`))) {
+    fs.rmSync(
+      path.join(basePath, `tmp/${req.body.projectId}`),
+      { recursive: true, force: true },
+      (err) => {
+        if (err) {
+          throw err;
+        }
 
-      console.log(
-        `${projectId} folder has been generated successfully and now being deleted!`
-      );
-    });
+        console.log(
+          `${req.body.projectId} folder has been generated successfully and now being deleted!`
+        );
+      }
+    );
   }
 }
 

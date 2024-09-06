@@ -56,11 +56,11 @@ import { Trait } from "../types/dir/Trait";
           }
       }
 
-      if(fs.existsSync(`${this.layersPath}/one_of_ones`)){
+      if(fs.existsSync(`${this.layersPath}/temp/one_of_ones`)){
         layers[index] = {
           kind: "one_of_ones",
           id: +index,
-          elements: this.getElements(`${this.layersPath}/one_of_ones`),
+          elements: this.getElements(`${this.layersPath}/temp/one_of_ones`),
           name: "one_of_ones"
         }
       }
