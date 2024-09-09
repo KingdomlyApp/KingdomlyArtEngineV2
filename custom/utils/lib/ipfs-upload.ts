@@ -105,6 +105,32 @@ export default async function main(
   return { img_cid: media_cid, metadata_cid: metadata_cid, metadataList: updatedMetadata};
 }
 
+const fetchWithTimeout = async (
+  url: string,
+  options: RequestInit = {},
+  timeout: number = 3600000 // Default timeout is 60 seconds
+): Promise<Response> => {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+
+  try {
+      const response = await fetch(url, {
+          ...options,
+          signal: controller.signal,
+      });
+      clearTimeout(id);
+      return response;
+  } catch (error) {
+      if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+              throw new Error('Request timed out');
+          }
+          throw new Error(`Fetch error: ${error.message}`);
+      }
+      throw new Error('An unknown error occurred');
+  }
+};
+
 async function storeToIPFS(files: File[], collectionName: string) {
   const formData = new FormData();
   files.forEach((file, index) => {
@@ -123,15 +149,38 @@ async function storeToIPFS(files: File[], collectionName: string) {
 
   formData.append("pinataOptions", options);
 
-  const res = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
-    },
-    body: formData,
-  });
+  let cid;
 
-  const resData = await res.json();
-  const cid = resData.IpfsHash;
+  try{
+    const res = await fetchWithTimeout("https://api.pinata.cloud/pinning/pinFileToIPFS", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
+      },
+      body: formData,
+    });
+
+    const resData = await res.json();
+    cid = resData.IpfsHash;
+  } catch (error) {
+    if (error instanceof Error) {
+        console.error('Error uploading file:', error.message);
+    } else {
+        console.error('Unknown error occurred');
+    }
+}
+
+  // const res = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
+  //   method: "POST",
+  //   headers: {
+  //     Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
+  //   },
+  //   body: formData,
+  // });
+
+
+  // const resData = await res.json();
+  // const cid = resData.IpfsHash;
+  
   return cid;
 }
