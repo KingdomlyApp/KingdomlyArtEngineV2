@@ -106,6 +106,11 @@ export default async function main(
 }
 
 async function storeToIPFS(files: File[], collectionName: string) {
+  const timeout = 3600000;
+  const controller = new AbortController();
+  const reason = new DOMException('signal timed out', 'TimeoutError');
+  const timeoutId = setTimeout(() => controller.abort(reason), timeout);
+
   const formData = new FormData();
   files.forEach((file, index) => {
     formData.append("file", file, `${collectionName}/${file.name}`);
@@ -129,8 +134,10 @@ async function storeToIPFS(files: File[], collectionName: string) {
       Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
     },
     body: formData,
-    signal: AbortSignal.timeout(3600000)
+    signal: controller.signal,
   });
+
+  clearTimeout(timeoutId);
 
 
   const resData = await res.json();

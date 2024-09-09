@@ -47,12 +47,9 @@ export class SharpImageProcessor implements ImageProcessorInterface {
 
           const outputPathFile = path.join(outputPath, `${file}`); // Temporary file path
 
-          // Resize the image using Sharp
-          await sharp(filePath)
-            .resize(width, height, {
-              fit: 'inside', // Fit within the dimensions, maintaining aspect ratio
-            })
-            .toFile(outputPathFile); // Overwrite the original file
+            await sharp(filePath).resize(width, height, {
+              fit: sharp.fit.cover,
+            }).toFile(outputPathFile);
         }
       }
 
