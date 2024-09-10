@@ -18,7 +18,6 @@ const FirebaseDB = require("../dist/utils/lib/FirebaseDB").default;
 
 const firebase = new FirebaseDB();
 const { SharpImageProcessor } = require("../dist/utils/processors/sharp");
-const imageProcessor = new SharpImageProcessor();
 
 async function GenerateCollection(req, res) {
   if (
@@ -27,9 +26,11 @@ async function GenerateCollection(req, res) {
     req.body.description != null &&
     Object.entries(req.body.dnaList).length !== 0
   ) {
-    // if (!dir || !dnaList || !projectName) {
-    //   return res.status(400).send({ error: "check entered fields." });
-    // }
+    let totalCount = 0;
+
+    Array.from(Object.entries(req.body.dnaList)).forEach((dnaList) => {
+      totalCount += dnaList[1].length;
+    });
 
     if (!req.body.dnaList || !req.body.projectName) {
       await firebase.updateErrorGenerating(
@@ -37,6 +38,12 @@ async function GenerateCollection(req, res) {
         "Dna List or Project Name is undefined. Check entered fields!"
       );
       return res.status(400).send({ error: "check entered fields." });
+    } else if (totalCount > 10000) {
+      await firebase.updateErrorGenerating(
+        projectId,
+        "Collection size is too large"
+      );
+      return res.status(400).send({ error: "Collection size is too large" });
     } else {
       res.status(200).send({
         message: "Started Art Generation!",
@@ -44,6 +51,8 @@ async function GenerateCollection(req, res) {
     }
 
     const { projectName, projectId, description } = req.body;
+
+    console.log(`Generating ${projectId}`);
 
     const dnaList = new Map(Object.entries(req.body.dnaList));
 
