@@ -28,6 +28,8 @@ async function GenerateCollection(req, res) {
   ) {
     let totalCount = 0;
 
+    const { projectName, projectId, description } = req.body;
+
     Array.from(Object.entries(req.body.dnaList)).forEach((dnaList) => {
       totalCount += dnaList[1].length;
     });
@@ -49,8 +51,6 @@ async function GenerateCollection(req, res) {
         message: "Started Art Generation!",
       });
     }
-
-    const { projectName, projectId, description } = req.body;
 
     console.log(`Generating ${projectId}`);
 
