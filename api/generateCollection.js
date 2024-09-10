@@ -35,12 +35,16 @@ async function GenerateCollection(req, res) {
     });
 
     if (!req.body.dnaList || !req.body.projectName) {
+      console.log(
+        `${req.body.projectId} Dna List or Project Name is undefined. Check entered fields!`
+      );
       await firebase.updateErrorGenerating(
         projectId,
         "Dna List or Project Name is undefined. Check entered fields!"
       );
       return res.status(400).send({ error: "check entered fields." });
     } else if (totalCount > 10000) {
+      console.log(`${req.body.projectId} Collection size is too large`);
       await firebase.updateErrorGenerating(
         projectId,
         "Collection size is too large"
