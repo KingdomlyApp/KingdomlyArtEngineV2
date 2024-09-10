@@ -42,14 +42,14 @@ async function GenerateCollection(req, res) {
         projectId,
         "Dna List or Project Name is undefined. Check entered fields!"
       );
-      return res.status(400).send({ error: "check entered fields." });
+      return res.status(400).send({ message: "check entered fields." });
     } else if (totalCount > 10000) {
       console.log(`${req.body.projectId} Collection size is too large`);
       await firebase.updateErrorGenerating(
         projectId,
         "Collection size is too large"
       );
-      return res.status(400).send({ error: "Collection size is too large" });
+      return res.status(400).send({ message: "Collection size is too large" });
     } else {
       res.status(200).send({
         message: "Started Art Generation!",
