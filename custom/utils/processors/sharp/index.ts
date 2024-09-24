@@ -30,6 +30,7 @@ export class SharpImageProcessor implements ImageProcessorInterface {
       },
     })
       .composite(normalizedAssets)
+      .png({compressionLevel: 9, adaptiveFiltering: true})
       .toFile(createImageWithLayersProps.outputPath);
   }
 

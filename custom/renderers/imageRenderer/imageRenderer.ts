@@ -10,6 +10,7 @@ import { CACHE } from "@hashlips-lab/art-engine";
 import { ItemPropertiesInterface } from "@hashlips-lab/art-engine/dist/utils/managers/items-data/items-data.interface";
 import { SharpImageProcessor } from "../../utils/processors/sharp"
 import FirebaseDB from "../../utils/lib/FirebaseDB";
+const sharp = require("sharp");
 
 interface ImageListInterface {
   path: string
@@ -65,8 +66,8 @@ export class ImageRenderer
 
         try{
           await this.imageProcessor.createImageWithLayers({
-              width: 1024,
-              height: 1024,
+              width: 2000,
+              height: 2000,
               outputPath: outputPath,
               assets: temp_assets,
           });

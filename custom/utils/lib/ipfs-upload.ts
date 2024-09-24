@@ -1,40 +1,16 @@
 import { NFTMetadata } from "@/custom/types/NFT";
 import { NFTStorage, File } from "nft.storage";
 import * as fs from 'fs';
+const { setGlobalDispatcher, Agent } = require('undici');
 
-const NFT_STORAGE_KEY = process.env.NEXT_PUBLIC_NFT_STORAGE_KEY;
-
-let convertDataURIToBinary = (dataURI: any) => {
-  var BASE64_MARKER = ";base64,";
-  var base64Index = dataURI.indexOf(BASE64_MARKER) + BASE64_MARKER.length;
-  var base64 = dataURI.substring(base64Index);
-  var raw = window.atob(base64);
-  var rawLength = raw.length;
-  var array = new Uint8Array(new ArrayBuffer(rawLength));
-
-  for (var i = 0; i < rawLength; i++) {
-    array[i] = raw.charCodeAt(i);
-  }
-  return array;
-};
-
-const convertImageToBase64 = async (imageUrl: string) => {
-  try {
-    const response = await fetch(imageUrl, { cache: "reload" });
-    const blob = await response.blob();
-
-    const url = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-
-    return url;
-  } catch (error) {
-    console.error("Error converting image to base64:", error);
-  }
-};
+// Set up the custom undici agent with timeouts up to 2 hours
+setGlobalDispatcher(
+  new Agent({
+    keepAliveTimeout: 2 * 60 * 60 * 1000,  // Keep alive for 2 hours
+    headersTimeout: 2 * 60 * 60 * 1000,    // 2 hours for header timeout
+    bodyTimeout: 2 * 60 * 60 * 1000        // 2 hours for body timeout
+  })
+);
 
 async function storeAndModifyMetadata(
   metadata: NFTMetadata[],
@@ -106,11 +82,6 @@ export default async function main(
 }
 
 async function storeToIPFS(files: File[], collectionName: string) {
-  const timeout = 3600000;
-  const controller = new AbortController();
-  const reason = new DOMException('signal timed out', 'TimeoutError');
-  const timeoutId = setTimeout(() => controller.abort(reason), timeout);
-
   const formData = new FormData();
   files.forEach((file, index) => {
     formData.append("file", file, `${collectionName}/${file.name}`);
@@ -134,10 +105,7 @@ async function storeToIPFS(files: File[], collectionName: string) {
       Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
     },
     body: formData,
-    signal: controller.signal,
   });
-
-  clearTimeout(timeoutId);
 
 
   const resData = await res.json();

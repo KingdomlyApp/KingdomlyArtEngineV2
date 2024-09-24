@@ -43,7 +43,7 @@ async function GenerateCollection(req, res) {
         "Dna List or Project Name is undefined. Check entered fields!"
       );
       return res.status(400).send({ message: "check entered fields." });
-    } else if (totalCount > 10000) {
+    } else if (totalCount > 1000 && !firebase.getPartnerCode(projectId)) {
       console.log(`${req.body.projectId} Collection size is too large`);
       await firebase.updateErrorGenerating(
         projectId,
@@ -78,10 +78,11 @@ async function GenerateCollection(req, res) {
       dir = new Map(Object.entries(req.body.dir));
 
       for (const [key, dirs] of dir) {
-        const dirPath = path.join(
-          directoryPath,
-          `temp/${dirs.collection_name}`
-        );
+        // const dirPath = path.join(
+        //   directoryPath,
+        //   `temp/${dirs.collection_name}`
+        // );
+        const dirPath = path.join(directoryPath, `${dirs.collection_name}`);
         if (fs.existsSync(dirPath)) {
           fs.rmdirSync(dirPath, { recursive: true });
         }
@@ -176,27 +177,27 @@ async function GenerateCollection(req, res) {
 
     await Promise.all(downloadPromises);
 
-    //Step2.1 Resize the images
-    const imageProcessor = new SharpImageProcessor();
-    for (const [key, dirs] of dir) {
-      const dirPath = path.join(directoryPath, `temp/${dirs.collection_name}`);
-      const outputPath = path.join(directoryPath, `${dirs.collection_name}`);
+    // //Step2.1 Resize the images
+    // const imageProcessor = new SharpImageProcessor();
+    // for (const [key, dirs] of dir) {
+    //   const dirPath = path.join(directoryPath, `temp/${dirs.collection_name}`);
+    //   const outputPath = path.join(directoryPath, `${dirs.collection_name}`);
 
-      for (const layer of dirs.layers) {
-        const layerPath = path.join(dirPath, `${layer.name}`);
-        const outputLayerPath = path.join(outputPath, `${layer.name}`);
-        if (fs.existsSync(outputLayerPath)) {
-          fs.rmdirSync(outputLayerPath, { recursive: true });
-        }
-        fs.mkdirSync(outputLayerPath, { recursive: true });
-        await imageProcessor.checkImageSize(
-          `${layerPath}`,
-          outputLayerPath,
-          1024,
-          1024
-        );
-      }
-    }
+    //   for (const layer of dirs.layers) {
+    //     const layerPath = path.join(dirPath, `${layer.name}`);
+    //     const outputLayerPath = path.join(outputPath, `${layer.name}`);
+    //     if (fs.existsSync(outputLayerPath)) {
+    //       fs.rmdirSync(outputLayerPath, { recursive: true });
+    //     }
+    //     fs.mkdirSync(outputLayerPath, { recursive: true });
+    //     await imageProcessor.checkImageSize(
+    //       `${layerPath}`,
+    //       outputLayerPath,
+    //       1024,
+    //       1024
+    //     );
+    //   }
+    // }
 
     //Step 3: Art Engine
     const artEngine = new ArtEngine({

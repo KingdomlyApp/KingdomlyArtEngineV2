@@ -83,4 +83,28 @@ export default class NewFirebaseDB
 
     await docRef.set(updateData, {merge: true})
   }
+
+  getPartnerCode(projectId: string): boolean{
+    const docRef = this.db.collection('projects').doc(projectId);
+
+    // Retrieve the document and access the specific field
+    docRef.get()
+    .then(doc => {
+      if (doc.exists) {
+        // Access the specific field
+        const fieldValue = doc.get('contract_details.contract_settings.partner_code');
+
+        if(fieldValue){
+          return true;
+        }
+      } else {
+        console.log('No such document!');
+      }
+    })
+    .catch(error => {
+      console.error('Error getting document:', error);
+    });
+
+    return false;
+  }
 }
