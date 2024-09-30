@@ -84,27 +84,27 @@ export default class NewFirebaseDB
     await docRef.set(updateData, {merge: true})
   }
 
-  getPartnerCode(projectId: string): boolean{
+  async getPartnerCode(projectId: string): Promise<boolean>{
     const docRef = this.db.collection('projects').doc(projectId);
 
-    // Retrieve the document and access the specific field
-    docRef.get()
-    .then(doc => {
-      if (doc.exists) {
-        // Access the specific field
-        const fieldValue = doc.get('contract_details.contract_settings.partner_code');
+    try{
+      const doc = await docRef.get();
 
-        if(fieldValue){
-          return true;
+      if(doc.exists){
+        // Access the specific field
+        const fieldValue: string = doc.get('contract_details.contract_settings.partner_code');
+
+        // Check if fieldValue is a valid non-empty string
+        if (typeof fieldValue === 'string' && fieldValue.trim().length > 0) {
+          return true; // Return true if the field value is a valid non-empty string
         }
       } else {
         console.log('No such document!');
       }
-    })
-    .catch(error => {
+    } catch (error) {
       console.error('Error getting document:', error);
-    });
+    }
 
-    return false;
+    return false; // Return false if the field is undefined, empty, or document doesn't exist
   }
 }
