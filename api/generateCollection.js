@@ -146,12 +146,9 @@ async function GenerateCollection(req, res) {
         fs.mkdirSync(dirPath, { recursive: true });
         for (const ooos of Array.from(dnas)) {
           // Check if oneofones is downloaded already
-          if (!uniqueOneOfOnes.includes(ooos.ooos.layers[0].trait_name)) {
-            uniqueOneOfOnes.push(ooos.ooos.layers[0].trait_name);
-            const filePath = path.join(
-              dirPath,
-              `${ooos.ooos.layers[0].trait_name}.png`
-            );
+          if (!uniqueOneOfOnes.includes(ooos.name)) {
+            uniqueOneOfOnes.push(ooos.name);
+            const filePath = path.join(dirPath, `${ooos.name}.png`);
             const file = fs.createWriteStream(filePath);
 
             downloadPromises.push(
@@ -271,21 +268,21 @@ async function GenerateCollection(req, res) {
     });
   }
 
-  if (fs.existsSync(path.join(basePath, `tmp/${req.body.projectId}`))) {
-    fs.rmSync(
-      path.join(basePath, `tmp/${req.body.projectId}`),
-      { recursive: true, force: true },
-      (err) => {
-        if (err) {
-          throw err;
-        }
+  // if (fs.existsSync(path.join(basePath, `tmp/${req.body.projectId}`))) {
+  //   fs.rmSync(
+  //     path.join(basePath, `tmp/${req.body.projectId}`),
+  //     { recursive: true, force: true },
+  //     (err) => {
+  //       if (err) {
+  //         throw err;
+  //       }
 
-        console.log(
-          `${req.body.projectId} folder has been generated successfully and now being deleted!`
-        );
-      }
-    );
-  }
+  //       console.log(
+  //         `${req.body.projectId} folder has been generated successfully and now being deleted!`
+  //       );
+  //     }
+  //   );
+  // }
 }
 
 module.exports = GenerateCollection;

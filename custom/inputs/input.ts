@@ -29,7 +29,7 @@ import { Trait } from "../types/dir/Trait";
     private getElements = (path: string, traits?: Trait[]): Elements[] => {
       return fs.readdirSync(path).filter((item: string) => !/(^|\/)\.[^\/\.]/g.test(item)).map((i: string, index: number) => {
         return {
-          id: traits ? traits.find((trait)=> trait.name === i.slice(0, -4))?.id : index,
+          id: traits ? traits.find((trait)=> trait.name === i.slice(0, -4))?.id : i.split("#")[1].split(".")[0],
           name: i.slice(0, -4),
           filename: i,
           path: `${path}/${i}`

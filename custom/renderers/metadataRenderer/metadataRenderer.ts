@@ -93,7 +93,7 @@ export class MetadataRenderer
         let metadata = {
           name: foundOOOs.data.token_name,
           description: foundOOOs.data.token_description,
-          image: path.join(this.ooosPath, `${foundOOOs?.data.assets[0].value}.png`),
+          image: path.join(this.ooosPath, `${foundOOOs?.data.token_name}.png`),
           date: Date.now(),
           attributes: this.getAttributes(foundOOOs.data.assets)
 
