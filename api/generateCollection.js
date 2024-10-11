@@ -268,21 +268,21 @@ async function GenerateCollection(req, res) {
     });
   }
 
-  // if (fs.existsSync(path.join(basePath, `tmp/${req.body.projectId}`))) {
-  //   fs.rmSync(
-  //     path.join(basePath, `tmp/${req.body.projectId}`),
-  //     { recursive: true, force: true },
-  //     (err) => {
-  //       if (err) {
-  //         throw err;
-  //       }
+  if (fs.existsSync(path.join(basePath, `tmp/${req.body.projectId}`))) {
+    fs.rmSync(
+      path.join(basePath, `tmp/${req.body.projectId}`),
+      { recursive: true, force: true },
+      (err) => {
+        if (err) {
+          throw err;
+        }
 
-  //       console.log(
-  //         `${req.body.projectId} folder has been generated successfully and now being deleted!`
-  //       );
-  //     }
-  //   );
-  // }
+        console.log(
+          `${req.body.projectId} folder has been generated successfully and now being deleted!`
+        );
+      }
+    );
+  }
 }
 
 module.exports = GenerateCollection;
