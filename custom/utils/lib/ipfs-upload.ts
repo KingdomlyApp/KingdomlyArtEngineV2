@@ -12,6 +12,17 @@ setGlobalDispatcher(
   })
 );
 
+// Utility function to convert a ReadStream to a Buffer
+function streamToBuffer(stream: fs.ReadStream): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: any[] = [];
+    stream.on('data', (chunk) => chunks.push(chunk));
+    stream.on('error', reject);
+    stream.on('end', () => resolve(Buffer.concat(chunks)));
+  });
+}
+
+
 async function storeAndModifyMetadata(
   metadata: NFTMetadata[],
   collectionName: string
@@ -39,7 +50,10 @@ async function storeAndModifyMetadata(
 
         let fileType = uri.media.match(/\.(\w+)$/)?.[1] || "png";
 
-        let mediaFile = new File([fs.readFileSync(uri.media)], `${uri.name}.${fileType}`, {type: fileType});
+        // let mediaFile = new File([fs.readFileSync(uri.media)], `${uri.name}.${fileType}`, {type: fileType});
+
+        const mediaBuffer = await streamToBuffer(fs.createReadStream(uri.media));
+        let mediaFile = new File([mediaBuffer], `${uri.name}.${fileType}`, { type: fileType });
 
         metadatum.image = `ipfs://{cid}/${uri.name}.${fileType}`; // placeholder for actual CID
         updatedMetadata.push(metadatum);

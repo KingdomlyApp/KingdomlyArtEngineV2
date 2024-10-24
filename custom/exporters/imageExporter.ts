@@ -26,14 +26,11 @@ export class ImageExporter implements ExporterInterface {
       baseURI: string;
     }>(async (resolve, reject) => {
       try {
-        const metadataCopy = JSON.parse(
-          JSON.stringify(
+        const metadataCopy = 
             metadata.sort(
               (a, b) =>
                 Number(a.name.split("#")[1]) - Number(b.name.split("#")[1])
             )
-          )
-        );
         const { metadata_cid, img_cid, metadataList } = await ipfsUpload(metadataCopy, this.projectName);
 
         let baseURI = `ipfs://${metadata_cid}/`;

@@ -70,7 +70,7 @@ import GeneratorInterface, {
           key === "one_of_ones"){
             layerInputs = inputsData.filter((item: any) => item.kind === "one_of_ones");
             for(const currentDnas of value){
-              const ooos_items = layerInputs[0].elements.filter((item: any) => currentDnas.name === item.name);
+              const ooos_items = layerInputs[0].elements.filter((item: any) => currentDnas.ooos?.url.split("%2F")[4].split("?alt")[0] === item.name);
               items[parseInt(currentDnas.name.split("#")[1])] = [{
                 kind: "OneOfOnes",
                 data:{

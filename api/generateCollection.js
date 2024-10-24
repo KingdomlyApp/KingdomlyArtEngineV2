@@ -131,6 +131,7 @@ async function GenerateCollection(req, res) {
     }
 
     let uniqueOneOfOnes = [];
+    let tempFileName = "";
 
     for (const [key, dnas] of dnaList) {
       if (
@@ -145,10 +146,11 @@ async function GenerateCollection(req, res) {
         }
         fs.mkdirSync(dirPath, { recursive: true });
         for (const ooos of Array.from(dnas)) {
+          tempFileName = ooos.ooos.url.split("%2F")[4].split("?alt")[0];
           // Check if oneofones is downloaded already
-          if (!uniqueOneOfOnes.includes(ooos.name)) {
-            uniqueOneOfOnes.push(ooos.name);
-            const filePath = path.join(dirPath, `${ooos.name}.png`);
+          if (!uniqueOneOfOnes.includes(tempFileName)) {
+            uniqueOneOfOnes.push(tempFileName);
+            const filePath = path.join(dirPath, `${tempFileName}.png`);
             const file = fs.createWriteStream(filePath);
 
             downloadPromises.push(

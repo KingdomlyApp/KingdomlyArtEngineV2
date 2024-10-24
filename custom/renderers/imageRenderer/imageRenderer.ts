@@ -56,53 +56,65 @@ export class ImageRenderer
     for (const [id, assets] of Object.entries(this.attributesGetter())){
       const foundImage = (assets as ItemPropertiesInterface<any>[]).find((asset: ItemPropertiesInterface<any>) => asset.kind == "ImageGenerator@v1");
 
-      if(foundImage) {
-        if(foundImage.data.assets.length < 1){
-            throw new Error(`Couldn't find any supported set of attributes for the current item: ${id}`);
-        }
-
-        const outputPath = path.join(this.tempRenderDir, `${+id}.png`)
-        const temp_assets: { path: string}[] = foundImage.data.assets.map((obj: {path: string, layername: string, value: string}) => ({path: obj.path}));
-        const tempImage = await sharp(temp_assets[0].path).metadata();
-
-        try{
-          await this.imageProcessor.createImageWithLayers({
-              width: tempImage.width,
-              height: tempImage.height,
-              outputPath: outputPath,
-              assets: temp_assets,
-          });
-          renders[id] = [
-              {
-                  kind: "ImageRender@v1",
-                  data: {
-                      path: outputPath
-                  }
-              }
-          ]
-        } catch(error){
-
-          renders[id] = [
-            {
+      if(fs.existsSync(path.join(this.tempRenderDir, `${+id}.png`))){
+        renders[id] = [
+          {
               kind: "ImageRender@v1",
               data: {
-                path: temp_assets + " : " + error
+                  path: path.join(this.tempRenderDir, `${+id}.png`)
               }
-            }
-          ]
+          }
+      ]
+      }
+      else{
+        if(foundImage) {
+          if(foundImage.data.assets.length < 1){
+              throw new Error(`Couldn't find any supported set of attributes for the current item: ${id}`);
+          }
+
+          const outputPath = path.join(this.tempRenderDir, `${+id}.png`)
+          const temp_assets: { path: string}[] = foundImage.data.assets.map((obj: {path: string, layername: string, value: string}) => ({path: obj.path}));
+          const tempImage = await sharp(temp_assets[0].path).metadata();
+
+          try{
+            await this.imageProcessor.createImageWithLayers({
+                width: tempImage.width,
+                height: tempImage.height,
+                outputPath: outputPath,
+                assets: temp_assets,
+            });
+            renders[id] = [
+                {
+                    kind: "ImageRender@v1",
+                    data: {
+                        path: outputPath
+                    }
+                }
+            ]
+          } catch(error){
+
+            renders[id] = [
+              {
+                kind: "ImageRender@v1",
+                data: {
+                  path: temp_assets + " : " + error
+                }
+              }
+            ]
+          }
+
+          processedCount++;
         }
 
-        processedCount++;
-      }
+        const foundOOOs = (assets as ItemPropertiesInterface<any>[]).find((asset: ItemPropertiesInterface<any>) => asset.kind == "OneOfOnes");
 
-      const foundOOOs = (assets as ItemPropertiesInterface<any>[]).find((asset: ItemPropertiesInterface<any>) => asset.kind == "OneOfOnes");
+        if(foundOOOs){
+          processedCount++;
+        }
 
-      if(foundOOOs){
-        processedCount++;
-      }
-
-      if(processedCount % updateInterval === 0 || processedCount === totalCount){
-        await this.firebaseDB.updateGenerationPercent(this.projectId, Math.ceil((processedCount/totalCount)*80))
+        if(processedCount % updateInterval === 0 || processedCount === totalCount){
+          await this.firebaseDB.updateGenerationPercent(this.projectId, Math.ceil((processedCount/totalCount)*80))
+        }
       }
     }
     return renders;

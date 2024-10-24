@@ -17,7 +17,6 @@ export class SharpImageProcessor implements ImageProcessorInterface {
     for (const asset of createImageWithLayersProps.assets) {
       normalizedAssets.push({
         input: asset.path,
-        inside: true
       });
     }
 
@@ -31,6 +30,7 @@ export class SharpImageProcessor implements ImageProcessorInterface {
     })
       .composite(normalizedAssets)
       .png({compressionLevel: 9, adaptiveFiltering: true})
+      // .png({quality: 80, palette: false, compressionLevel: 1, adaptiveFiltering: true, force: true})
       .toFile(createImageWithLayersProps.outputPath);
   }
 
