@@ -6,9 +6,9 @@ const { setGlobalDispatcher, Agent } = require('undici');
 // Set up the custom undici agent with timeouts up to 2 hours
 setGlobalDispatcher(
   new Agent({
-    keepAliveTimeout: 2 * 60 * 60 * 1000,  // Keep alive for 2 hours
-    headersTimeout: 2 * 60 * 60 * 1000,    // 2 hours for header timeout
-    bodyTimeout: 2 * 60 * 60 * 1000        // 2 hours for body timeout
+    keepAliveTimeout: 5 * 60 * 60 * 1000,  // Keep alive for 2 hours
+    headersTimeout: 5 * 60 * 60 * 1000,    // 2 hours for header timeout
+    bodyTimeout: 5 * 60 * 60 * 1000        // 2 hours for body timeout
   })
 );
 
