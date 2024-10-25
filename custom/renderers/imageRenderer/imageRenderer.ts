@@ -48,75 +48,152 @@ export class ImageRenderer
       fs.mkdirSync(this.tempRenderDir);
     }
 
-    const totalCount = Object.entries(this.attributesGetter()).length;
-    const updateInterval = Math.floor(totalCount/10);
-
+    const items = Object.entries(this.attributesGetter());
+    const totalCount = items.length;
+    const updateInterval = Math.floor(totalCount / 10);
+    const batchSize = 10;
     let processedCount = 0;
 
-    for (const [id, assets] of Object.entries(this.attributesGetter())){
-      const foundImage = (assets as ItemPropertiesInterface<any>[]).find((asset: ItemPropertiesInterface<any>) => asset.kind == "ImageGenerator@v1");
+    const processImage = async (id: string, assets: ItemPropertiesInterface<any>[]) => {
+      const foundImage = assets.find((asset) => asset.kind === "ImageGenerator@v1");
+      const outputPath = path.join(this.tempRenderDir, `${+id}.png`);
 
-      if(fs.existsSync(path.join(this.tempRenderDir, `${+id}.png`))){
-        renders[id] = [
-          {
-              kind: "ImageRender@v1",
-              data: {
-                  path: path.join(this.tempRenderDir, `${+id}.png`)
-              }
-          }
-      ]
-      }
-      else{
-        if(foundImage) {
-          if(foundImage.data.assets.length < 1){
-              throw new Error(`Couldn't find any supported set of attributes for the current item: ${id}`);
-          }
+      if (fs.existsSync(outputPath)) {
+        return { id, renderData: [{ kind: "ImageRender@v1", data: { path: outputPath } }] };
+      } else if (foundImage) {
+        if (foundImage.data.assets.length < 1) {
+          throw new Error(`Couldn't find any supported set of attributes for the current item: ${id}`);
+        }
 
-          const outputPath = path.join(this.tempRenderDir, `${+id}.png`)
-          const temp_assets: { path: string}[] = foundImage.data.assets.map((obj: {path: string, layername: string, value: string}) => ({path: obj.path}));
-          const tempImage = await sharp(temp_assets[0].path).metadata();
+        const tempAssets = foundImage.data.assets.map((obj: { path: string }) => ({ path: obj.path }));
+        const tempImage = await sharp(tempAssets[0].path).metadata();
 
-          try{
-            await this.imageProcessor.createImageWithLayers({
-                width: tempImage.width,
-                height: tempImage.height,
-                outputPath: outputPath,
-                assets: temp_assets,
-            });
-            renders[id] = [
-                {
-                    kind: "ImageRender@v1",
-                    data: {
-                        path: outputPath
-                    }
-                }
-            ]
-          } catch(error){
-
-            renders[id] = [
+        try {
+          await this.imageProcessor.createImageWithLayers({
+            width: tempImage.width,
+            height: tempImage.height,
+            outputPath,
+            assets: tempAssets,
+          });
+          return { id, renderData: [{ kind: "ImageRender@v1", data: { path: outputPath } }] };
+        } catch (error) {
+          return {
+            id,
+            renderData: [
               {
                 kind: "ImageRender@v1",
-                data: {
-                  path: temp_assets + " : " + error
-                }
-              }
-            ]
-          }
-
-          processedCount++;
-        }
-
-        const foundOOOs = (assets as ItemPropertiesInterface<any>[]).find((asset: ItemPropertiesInterface<any>) => asset.kind == "OneOfOnes");
-
-        if(foundOOOs){
-          processedCount++;
-        }
-
-        if(processedCount % updateInterval === 0 || processedCount === totalCount){
-          await this.firebaseDB.updateGenerationPercent(this.projectId, Math.ceil((processedCount/totalCount)*80))
+                data: { path: tempAssets + " : " + error },
+              },
+            ],
+          };
         }
       }
-    }
+    };
+
+    const processBatches = async () => {
+      for (let i = 0; i < items.length; i += batchSize) {
+        const batch = items.slice(i, i + batchSize);
+
+        const batchResults = await Promise.allSettled(
+          batch.map(async ([id, assets]) => {
+            return processImage(id, assets as ItemPropertiesInterface<any>[]);
+          })
+        );
+
+        batchResults.forEach((result, index) => {
+          if (result.status === "fulfilled") {
+            const { value } = result;
+            if (value) {
+              const { id, renderData } = value;
+              renders[id] = renderData;
+            }
+          } else {
+            console.error(`Error processing item with ID ${batch[index][0]}:`, result.reason);
+          }
+        });
+
+        processedCount += batch.length; // Update processedCount for the batch
+        if (processedCount % updateInterval === 0 || processedCount === totalCount) {
+          await this.firebaseDB.updateGenerationPercent(
+            this.projectId,
+            Math.ceil((processedCount / totalCount) * 80)
+          );
+        }
+      }
+    };
+
+    await processBatches();
     return renders;
+
+    // const totalCount = Object.entries(this.attributesGetter()).length;
+    // const updateInterval = Math.floor(totalCount/10);
+
+    // let processedCount = 0;
+
+    // for (const [id, assets] of Object.entries(this.attributesGetter())){
+    //   const foundImage = (assets as ItemPropertiesInterface<any>[]).find((asset: ItemPropertiesInterface<any>) => asset.kind == "ImageGenerator@v1");
+
+    //   if(fs.existsSync(path.join(this.tempRenderDir, `${+id}.png`))){
+    //     renders[id] = [
+    //       {
+    //           kind: "ImageRender@v1",
+    //           data: {
+    //               path: path.join(this.tempRenderDir, `${+id}.png`)
+    //           }
+    //       }
+    //   ]
+    //   }
+    //   else{
+    //     if(foundImage) {
+    //       if(foundImage.data.assets.length < 1){
+    //           throw new Error(`Couldn't find any supported set of attributes for the current item: ${id}`);
+    //       }
+
+    //       const outputPath = path.join(this.tempRenderDir, `${+id}.png`)
+    //       const temp_assets: { path: string}[] = foundImage.data.assets.map((obj: {path: string, layername: string, value: string}) => ({path: obj.path}));
+    //       const tempImage = await sharp(temp_assets[0].path).metadata();
+
+    //       try{
+    //         await this.imageProcessor.createImageWithLayers({
+    //             width: tempImage.width,
+    //             height: tempImage.height,
+    //             outputPath: outputPath,
+    //             assets: temp_assets,
+    //         });
+    //         renders[id] = [
+    //             {
+    //                 kind: "ImageRender@v1",
+    //                 data: {
+    //                     path: outputPath
+    //                 }
+    //             }
+    //         ]
+    //       } catch(error){
+
+    //         renders[id] = [
+    //           {
+    //             kind: "ImageRender@v1",
+    //             data: {
+    //               path: temp_assets + " : " + error
+    //             }
+    //           }
+    //         ]
+    //       }
+
+    //       processedCount++;
+    //     }
+
+    //     const foundOOOs = (assets as ItemPropertiesInterface<any>[]).find((asset: ItemPropertiesInterface<any>) => asset.kind == "OneOfOnes");
+
+    //     if(foundOOOs){
+    //       processedCount++;
+    //     }
+
+    //     if(processedCount % updateInterval === 0 || processedCount === totalCount){
+    //       await this.firebaseDB.updateGenerationPercent(this.projectId, Math.ceil((processedCount/totalCount)*80))
+    //     }
+    //   }
+    // }
+    // return renders;
   }
 }
