@@ -17,7 +17,6 @@ const path = require("path");
 const FirebaseDB = require("../dist/utils/lib/FirebaseDB").default;
 
 const firebase = new FirebaseDB();
-const { SharpImageProcessor } = require("../dist/utils/processors/sharp");
 
 async function GenerateCollection(req, res) {
   if (
@@ -146,7 +145,12 @@ async function GenerateCollection(req, res) {
         }
         fs.mkdirSync(dirPath, { recursive: true });
         for (const ooos of Array.from(dnas)) {
-          tempFileName = ooos.ooos.url.split("%2F")[4].split("?alt")[0];
+          if (ooos.ooos.url.includes("firebase")) {
+            tempFileName = ooos.ooos.url.split("%2F")[4].split("?alt")[0];
+          } else {
+            tempFileName = ooos.ooos.url.split("/").pop().split(".png")[0];
+          }
+
           // Check if oneofones is downloaded already
           if (!uniqueOneOfOnes.includes(tempFileName)) {
             uniqueOneOfOnes.push(tempFileName);
