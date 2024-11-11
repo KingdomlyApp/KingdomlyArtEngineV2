@@ -62,6 +62,7 @@ import GeneratorInterface, {
       let items: ItemsAttributes<ImageDnaInterface> = {};
       const inputsData = this.inputsManager.get(this.dataKey);
       let layerInputs = [];
+      let imageUrl : string | undefined = "";
 
       for(const [key, value] of this.dnaList){
         if(key === "one_of_ones_0" ||
@@ -70,7 +71,8 @@ import GeneratorInterface, {
           key === "one_of_ones"){
             layerInputs = inputsData.filter((item: any) => item.kind === "one_of_ones");
             for(const currentDnas of value){
-              const ooos_items = layerInputs[0].elements.filter((item: any) => currentDnas.ooos?.url.split("%2F")[4].split("?alt")[0] === item.name);
+              imageUrl = currentDnas.ooos?.url.includes("firebase") ? currentDnas.ooos?.url.split("%2F")[4].split("?alt")[0] : currentDnas.ooos?.url.split("/").pop()?.split(".png")[0] ?? '';
+              const ooos_items = layerInputs[0].elements.filter((item: any) => imageUrl === item.name);
               items[parseInt(currentDnas.name.split("#")[1])] = [{
                 kind: "OneOfOnes",
                 data:{
