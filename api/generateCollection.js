@@ -140,7 +140,7 @@ async function GenerateCollection(req, res) {
         key === "one_of_ones_2" ||
         key === "one_of_ones"
       ) {
-        const dirPath = path.join(directoryPath, "temp/one_of_ones");
+        const dirPath = path.join(directoryPath, "/one_of_ones");
         if (fs.existsSync(dirPath)) {
           fs.rmdirSync(dirPath, { recursive: true });
         }
@@ -207,13 +207,13 @@ async function GenerateCollection(req, res) {
     //   }
     // }
 
-    const imageProcessor = new SharpImageProcessor();
-    const dirPath = path.join(directoryPath, "/temp/one_of_ones");
-    const outputPath = path.join(directoryPath, "/one_of_ones");
-    if (!fs.existsSync(outputPath)) {
-      fs.mkdirSync(outputPath, { recursive: true });
-    }
-    await imageProcessor.checkImageSize(dirPath, outputPath, 1024, 1024);
+    // const imageProcessor = new SharpImageProcessor();
+    // const dirPath = path.join(directoryPath, "/temp/one_of_ones");
+    // const outputPath = path.join(directoryPath, "/one_of_ones");
+    // if (!fs.existsSync(outputPath)) {
+    //   fs.mkdirSync(outputPath, { recursive: true });
+    // }
+    // await imageProcessor.checkImageSize(dirPath, outputPath, 1024, 1024);
 
     //Step 3: Art Engine
     const artEngine = new ArtEngine({
