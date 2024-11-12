@@ -44,7 +44,7 @@ export class SharpImageProcessor implements ImageProcessorInterface {
         const filePath = path.join(dirPath, file);
 
         // Check if the file is an image
-        if (!/(^|\/)\.[^\/\.]/g.test(file)) {
+        if (/\.(jpg|jpeg|png|gif)$/i.test(file)) {
 
           const outputPathFile = path.join(outputPath, `${file}`); // Temporary file path
 
