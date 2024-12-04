@@ -91,6 +91,7 @@ export class ImageRenderer
     };
 
     const processBatches = async () => {
+      let nextUpdatePercent = 10;
       for (let i = 0; i < items.length; i += batchSize) {
         const batch = items.slice(i, i + batchSize);
 
@@ -113,11 +114,12 @@ export class ImageRenderer
         });
 
         processedCount += batch.length; // Update processedCount for the batch
-        if (processedCount % updateInterval === 0 || processedCount === totalCount) {
+        if (processedCount >= (totalCount * nextUpdatePercent)/100) {
           await this.firebaseDB.updateGenerationPercent(
             this.projectId,
-            Math.ceil((processedCount / totalCount) * 80)
+            (nextUpdatePercent / 10) * 8
           );
+          nextUpdatePercent += 10;
         }
       }
     };
