@@ -11,9 +11,17 @@ const corsOptions = {
   origin: function (origin, callback) {
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
       callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
+      return;
     }
+    if (
+      origin &&
+      origin.match(/kingdomly-creator-v3-.*\.vercel\.app$/) !== null
+    ) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error("Not allowed by CORS"));
   },
   methods: "POST, GET",
   allowedHeaders: "*",

@@ -17,7 +17,6 @@ const path = require("path");
 const FirebaseDB = require("../dist/utils/lib/FirebaseDB").default;
 
 const firebase = new FirebaseDB();
-const { SharpImageProcessor } = require("../dist/utils/processors/sharp");
 
 async function GenerateCollection(req, res) {
   if (
