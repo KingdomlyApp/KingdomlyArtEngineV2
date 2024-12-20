@@ -85,6 +85,22 @@ import GeneratorInterface, {
               }]
             }
           }
+          else if(key === "metadata_assets"){
+            layerInputs = inputsData.filter((item: any) => item.kind === "one_of_ones");
+            for(const currentDnas of value){
+              const ooos_items = layerInputs[0].elements.filter((item: any) => currentDnas.name === item.name);
+              items[parseInt(currentDnas.name.split("#")[1])] = [{
+                kind: "OneOfOnes",
+                data:{
+                  id: parseInt(currentDnas.name.split("#")[1]),
+                  ooos_path: ooos_items[0].path,
+                  assets: this.getAssetsOOOs(currentDnas.ooos?.layers!),
+                  token_name: currentDnas.name,
+                  token_description: currentDnas.description
+                }
+              }]
+            }
+          }
       }
 
       for(const [key, value] of this.dir){

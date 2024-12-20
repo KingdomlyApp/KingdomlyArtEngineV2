@@ -18,6 +18,28 @@ const FirebaseDB = require("../dist/utils/lib/FirebaseDB").default;
 
 const firebase = new FirebaseDB();
 
+const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
+const { Readable } = require("stream");
+
+// Configure AWS SDK v3
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION, // e.g., 'us-west-2'
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
+// Helper function to stream S3 data to a file
+async function streamToFile(readableStream, filePath) {
+  return new Promise((resolve, reject) => {
+    const file = fs.createWriteStream(filePath);
+    readableStream.pipe(file);
+    file.on("finish", resolve);
+    file.on("error", reject);
+  });
+}
+
 async function GenerateCollection(req, res) {
   if (
     req.body.projectName != null &&
@@ -178,6 +200,36 @@ async function GenerateCollection(req, res) {
               })
             );
           }
+        }
+      } else if (key === "metadata_assets") {
+        const dirPath = path.join(directoryPath, "/one_of_ones");
+        if (fs.existsSync(dirPath)) {
+          fs.rmdirSync(dirPath, { recursive: true });
+        }
+        fs.mkdirSync(dirPath, { recursive: true });
+
+        for (const asset of Array.from(dnas)) {
+          const s3Params = {
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: `metadata-assets/${projectId}/${asset.ooos.url.split("/")[5]}`, // Assuming `s3_key` is the key for the S3 object
+          };
+
+          const filePath = path.join(dirPath, `${asset.name}.png`);
+
+          downloadPromises.push(
+            new Promise(async (resolve, reject) => {
+              try {
+                const command = new GetObjectCommand(s3Params);
+                const { Body } = await s3Client.send(command);
+                await streamToFile(Body, filePath);
+                resolve();
+              } catch (err) {
+                console.error(err);
+                fs.unlinkSync(filePath); // Delete the file on error
+                reject(err);
+              }
+            })
+          );
         }
       }
     }
