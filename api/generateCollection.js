@@ -159,7 +159,8 @@ async function GenerateCollection(req, res) {
         key === "one_of_ones_0" ||
         key === "one_of_ones_1" ||
         key === "one_of_ones_2" ||
-        key === "one_of_ones"
+        key === "one_of_ones" ||
+        key === "single_asset"
       ) {
         const dirPath = path.join(directoryPath, "/one_of_ones");
         if (fs.existsSync(dirPath)) {
@@ -287,7 +288,7 @@ async function GenerateCollection(req, res) {
         new ImageRenderer({ projectId: projectId, firebaseDB: firebase }),
       ],
 
-      exporters: [new ImageExporter(projectName)],
+      exporters: [new ImageExporter(projectName, req.body.isSingleAsset ? req.body.isSingleAsset : false)],
     });
 
     await artEngine.run();

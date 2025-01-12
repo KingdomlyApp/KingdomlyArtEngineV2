@@ -68,7 +68,8 @@ import GeneratorInterface, {
         if(key === "one_of_ones_0" ||
           key === "one_of_ones_1" ||
           key === "one_of_ones_2" ||
-          key === "one_of_ones"){
+          key === "one_of_ones" ||
+          key === "single_asset"){
             layerInputs = inputsData.filter((item: any) => item.kind === "one_of_ones");
             for(const currentDnas of value){
               imageUrl = currentDnas.ooos?.url.includes("firebase") ? currentDnas.ooos?.url.split("%2F")[4].split("?alt")[0] : currentDnas.ooos?.url.split("/").pop()?.split(".png")[0] ?? '';

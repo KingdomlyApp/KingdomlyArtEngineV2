@@ -25,13 +25,38 @@ function streamToBuffer(stream: fs.ReadStream): Promise<Buffer> {
 
 async function storeAndModifyMetadata(
   metadata: NFTMetadata[],
-  collectionName: string
+  collectionName: string,
+  isSingleAsset: boolean
 ) {
   const batchSize = 500;
   let batchStart = 0;
   let allMedia = [];
   let updatedMetadata: any[] = [];
   const binaryCache: Record<string, Uint8Array> = {};
+
+  // For single assets, we only need to process the first image
+  if (isSingleAsset && metadata.length > 0) {
+    const firstItem = metadata[0];
+    const uri = {
+      media: firstItem.image,
+      name: firstItem.name.split("#")[1],
+    };
+    
+    const fileType = uri.media.match(/\.(\w+)$/)?.[1] || "png";
+    const mediaBuffer = await streamToBuffer(fs.createReadStream(uri.media));
+    const mediaFile = new File([mediaBuffer], `asset.${fileType}`, { type: fileType });
+    
+    // Upload single asset and get CID
+    const cid = await storeToIPFS([mediaFile], collectionName, true);
+    
+    // Update all metadata items to point to the same asset
+    updatedMetadata = metadata.map(metadatum => ({
+      ...metadatum,
+      image: `ipfs://${cid}/`
+    }));
+
+    return { media_cid: cid, updatedMetadata };
+  }
 
   while (batchStart < metadata.length) {
     const currentBatchSize = Math.min(batchSize, metadata.length - batchStart);
@@ -65,7 +90,7 @@ async function storeAndModifyMetadata(
     allMedia.push(...currentMedia);
   }
 
-  const cid = await storeToIPFS(allMedia, collectionName);
+  const cid = await storeToIPFS(allMedia, collectionName, false);
 
   // Update metadata with actual CID
   updatedMetadata.forEach((meta) => {
@@ -77,11 +102,13 @@ async function storeAndModifyMetadata(
 
 export default async function main(
   metadata: NFTMetadata[],
-  collectionName: string
+  collectionName: string,
+  isSingleAsset: boolean
 ) {
   const { media_cid, updatedMetadata } = await storeAndModifyMetadata(
     metadata,
-    collectionName
+    collectionName,
+    isSingleAsset
   );
   const jsonFiles = updatedMetadata.map(
     (meta) =>
@@ -95,10 +122,12 @@ export default async function main(
   return { img_cid: media_cid, metadata_cid: metadata_cid, metadataList: updatedMetadata};
 }
 
-async function storeToIPFS(files: File[], collectionName: string) {
+async function storeToIPFS(files: File[], collectionName: string, isSingleAsset: boolean = false) {
   const formData = new FormData();
   files.forEach((file, index) => {
-    formData.append("file", file, `${collectionName}/${file.name}`);
+    // Only use collection name path if not a single asset
+    const fileName = isSingleAsset ? file.name : `${collectionName}/${file.name}`;
+    formData.append("file", file, fileName);
   });
 
   const _metadata = JSON.stringify({

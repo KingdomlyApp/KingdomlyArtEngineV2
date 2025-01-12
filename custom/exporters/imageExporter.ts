@@ -12,7 +12,7 @@ export class ImageExporter implements ExporterInterface {
   private rendersGetter!: ItemsDataManager["getRenders"];
   private outputPath!: string;
 
-  constructor(private projectName: string){}
+  constructor(private projectName: string, private isSingleAsset: boolean){}
 
   public async init(props: ExporterInitPropsInterface) {
     this.rendersGetter = props.rendersGetter;
@@ -31,7 +31,7 @@ export class ImageExporter implements ExporterInterface {
               (a, b) =>
                 Number(a.name.split("#")[1]) - Number(b.name.split("#")[1])
             )
-        const { metadata_cid, img_cid, metadataList } = await ipfsUpload(metadataCopy, this.projectName);
+        const { metadata_cid, img_cid, metadataList } = await ipfsUpload(metadataCopy, this.projectName, this.isSingleAsset);
 
         let baseURI = `ipfs://${metadata_cid}/`;
         fs.writeFileSync(path.join(this.outputPath, "_metadata.json"), JSON.stringify(metadataList, null, 2));
@@ -51,7 +51,6 @@ export class ImageExporter implements ExporterInterface {
     if(!fs.existsSync(this.outputPath)){
       fs.mkdirSync(this.outputPath);
     }
-
     let metadataList = [];
 
     for(const [_, renders] of Object.entries(this.rendersGetter())){
