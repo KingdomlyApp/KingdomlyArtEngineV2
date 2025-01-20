@@ -107,4 +107,27 @@ export default class NewFirebaseDB
 
     return false; // Return false if the field is undefined, empty, or document doesn't exist
   }
+
+  async getDnaList(projectId: string): Promise<any> {
+    const docRef = this.db.collection('projects').doc(projectId);
+
+    try {
+      const doc = await docRef.get();
+      const dnaListUrl = doc.get('dna_list');
+      
+      if (typeof dnaListUrl === 'string') {
+        const response = await fetch(dnaListUrl);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        return data;
+      }
+      
+      return dnaListUrl;
+    } catch (error) {
+      console.error('Error getting DNA list:', error);
+      throw error;
+    }
+  }
 }

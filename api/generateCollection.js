@@ -43,19 +43,20 @@ async function streamToFile(readableStream, filePath) {
 async function GenerateCollection(req, res) {
   if (
     req.body.projectName != null &&
-    req.body.projectId != null &&
-    req.body.description != null &&
-    Object.entries(req.body.dnaList).length !== 0
+    req.body.projectId != null
   ) {
     let totalCount = 0;
 
-    const { projectName, projectId, description } = req.body;
+    const { projectName, projectId } = req.body;
 
-    Array.from(Object.entries(req.body.dnaList)).forEach((dnaList) => {
+    // Use dnalist from request body if it exists, otherwise fetch from Firebase
+    const dnaListFB = req.body.dnalist || await firebase.getDnaList(projectId);
+
+    Array.from(Object.entries(dnaListFB)).forEach((dnaList) => {
       totalCount += dnaList[1].length;
     });
 
-    if (!req.body.dnaList || !req.body.projectName) {
+    if (!dnaListFB || !req.body.projectName) {
       console.log(
         `${req.body.projectId} Dna List or Project Name is undefined. Check entered fields!`
       );
@@ -83,7 +84,7 @@ async function GenerateCollection(req, res) {
 
     console.log(`Generating ${projectId}`);
 
-    const dnaList = new Map(Object.entries(req.body.dnaList));
+    const dnaList = new Map(Object.entries(dnaListFB));
 
     // Update Firebase to isGenerating = true
     await firebase.updateIsGenerating(projectId);
@@ -335,21 +336,21 @@ async function GenerateCollection(req, res) {
     });
   }
 
-  if (fs.existsSync(path.join(basePath, `tmp/${req.body.projectId}`))) {
-    fs.rmdirSync(
-      path.join(basePath, `tmp/${req.body.projectId}`),
-      { recursive: true, force: true },
-      (err) => {
-        if (err) {
-          throw err;
-        }
+  // if (fs.existsSync(path.join(basePath, `tmp/${req.body.projectId}`))) {
+  //   fs.rmdirSync(
+  //     path.join(basePath, `tmp/${req.body.projectId}`),
+  //     { recursive: true, force: true },
+  //     (err) => {
+  //       if (err) {
+  //         throw err;
+  //       }
 
-        console.log(
-          `${req.body.projectId} folder has been generated successfully and now being deleted!`
-        );
-      }
-    );
-  }
+  //       console.log(
+  //         `${req.body.projectId} folder has been generated successfully and now being deleted!`
+  //       );
+  //     }
+  //   );
+  // }
 }
 
 module.exports = GenerateCollection;
