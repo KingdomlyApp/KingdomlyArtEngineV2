@@ -41,16 +41,14 @@ async function streamToFile(readableStream, filePath) {
 }
 
 async function GenerateCollection(req, res) {
-  if (
-    req.body.projectName != null &&
-    req.body.projectId != null
-  ) {
+  if (req.body.projectName != null && req.body.projectId != null) {
     let totalCount = 0;
 
     const { projectName, projectId } = req.body;
 
     // Use dnalist from request body if it exists, otherwise fetch from Firebase
-    const dnaListFB = req.body.dnalist || await firebase.getDnaList(projectId);
+    const dnaListFB =
+      req.body.dnalist || (await firebase.getDnaList(projectId));
 
     Array.from(Object.entries(dnaListFB)).forEach((dnaList) => {
       totalCount += dnaList[1].length;
@@ -171,6 +169,9 @@ async function GenerateCollection(req, res) {
         for (const ooos of Array.from(dnas)) {
           if (ooos.ooos.url.includes("firebase")) {
             tempFileName = ooos.ooos.url.split("%2F")[4].split("?alt")[0];
+            if (tempFileName.includes("%20")) {
+              tempFileName = tempFileName.replaceAll("%20", " ");
+            }
           } else {
             tempFileName = ooos.ooos.url.split("/").pop().split(".png")[0];
           }
@@ -289,7 +290,12 @@ async function GenerateCollection(req, res) {
         new ImageRenderer({ projectId: projectId, firebaseDB: firebase }),
       ],
 
-      exporters: [new ImageExporter(projectName, req.body.isSingleAsset ? req.body.isSingleAsset : false)],
+      exporters: [
+        new ImageExporter(
+          projectName,
+          req.body.isSingleAsset ? req.body.isSingleAsset : false
+        ),
+      ],
     });
 
     await artEngine.run();
