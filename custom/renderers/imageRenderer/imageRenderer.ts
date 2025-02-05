@@ -82,14 +82,8 @@ export class ImageRenderer implements RendererInterface<ImageListInterface> {
 
         try {
           await this.imageProcessor.createImageWithLayers({
-            width:
-              this.projectId === "qZFGMWmOXpZDNt5W64mi"
-                ? 2048
-                : tempImage.width,
-            height:
-              this.projectId === "qZFGMWmOXpZDNt5W64mi"
-                ? 2048
-                : tempImage.height,
+            width: tempImage.width,
+            height: tempImage.height,
             outputPath,
             assets: tempAssets,
           });
