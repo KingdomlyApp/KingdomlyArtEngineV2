@@ -89,9 +89,6 @@ export class ImageGenerator implements GeneratorInterface<ImageDnaInterface> {
           const ooos_items = layerInputs[0].elements.filter(
             (item: any) => imageUrl === item.name
           );
-          console.log(imageUrl);
-          console.log(ooos_items);
-          console.log(ooos_items[0].path);
 
           items[parseInt(currentDnas.name.split("#")[1])] = [
             {
