@@ -170,7 +170,7 @@ async function GenerateCollection(req, res) {
           if (ooos.ooos.url.includes("firebase")) {
             tempFileName = ooos.ooos.url.split("%2F")[4].split("?alt")[0];
             if (tempFileName.includes("%20")) {
-              tempFileName = tempFileName.replaceAll("%20", " ");
+              tempFileName = tempFileName.replaceAll("%20", "");
             }
           } else {
             tempFileName = ooos.ooos.url.split("/").pop().split(".png")[0];
