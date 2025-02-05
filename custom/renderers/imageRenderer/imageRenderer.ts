@@ -8,17 +8,15 @@ import ItemsDataManager from "@hashlips-lab/art-engine/dist/utils/managers/items
 import ImageProcessorInterface from "../../processors/image-processing-interface";
 import { CACHE } from "@hashlips-lab/art-engine";
 import { ItemPropertiesInterface } from "@hashlips-lab/art-engine/dist/utils/managers/items-data/items-data.interface";
-import { SharpImageProcessor } from "../../utils/processors/sharp"
+import { SharpImageProcessor } from "../../utils/processors/sharp/index";
 import FirebaseDB from "../../utils/lib/FirebaseDB";
-const sharp = require("sharp");
+import sharp from "sharp";
 
 interface ImageListInterface {
-  path: string
+  path: string;
 }
 
-export class ImageRenderer
-  implements RendererInterface<ImageListInterface>
-{
+export class ImageRenderer implements RendererInterface<ImageListInterface> {
   attributesGetter!: ItemsDataManager["getAttributes"];
   private tempRenderDir!: string;
   private imageProcessor!: ImageProcessorInterface;
@@ -33,18 +31,20 @@ export class ImageRenderer
     this.projectId = constructorProps.projectId;
     this.firebaseDB = constructorProps.firebaseDB;
     this.imageProcessor = new SharpImageProcessor();
-
   }
 
   public async init(props: RendererInitPropsInterface): Promise<void> {
     this.attributesGetter = props.attributesGetter;
-    this.tempRenderDir = path.join(props.cachePath, CACHE.RENDERERS_TEMP_CACHE_DIR)
-  };
+    this.tempRenderDir = path.join(
+      props.cachePath,
+      CACHE.RENDERERS_TEMP_CACHE_DIR
+    );
+  }
 
   public async render(): Promise<ItemsRenders<ImageListInterface>> {
     const renders: ItemsRenders<ImageListInterface> = {};
 
-    if(!fs.existsSync(this.tempRenderDir)){
+    if (!fs.existsSync(this.tempRenderDir)) {
       fs.mkdirSync(this.tempRenderDir);
     }
 
@@ -54,28 +54,51 @@ export class ImageRenderer
     const batchSize = 10;
     let processedCount = 0;
 
-    const processImage = async (id: string, assets: ItemPropertiesInterface<any>[]) => {
-      const foundImage = assets.find((asset) => asset.kind === "ImageGenerator@v1");
+    const processImage = async (
+      id: string,
+      assets: ItemPropertiesInterface<any>[]
+    ) => {
+      const foundImage = assets.find(
+        (asset) => asset.kind === "ImageGenerator@v1"
+      );
       const outputPath = path.join(this.tempRenderDir, `${+id}.png`);
 
       if (fs.existsSync(outputPath)) {
-        return { id, renderData: [{ kind: "ImageRender@v1", data: { path: outputPath } }] };
+        return {
+          id,
+          renderData: [{ kind: "ImageRender@v1", data: { path: outputPath } }],
+        };
       } else if (foundImage) {
         if (foundImage.data.assets.length < 1) {
-          throw new Error(`Couldn't find any supported set of attributes for the current item: ${id}`);
+          throw new Error(
+            `Couldn't find any supported set of attributes for the current item: ${id}`
+          );
         }
 
-        const tempAssets = foundImage.data.assets.map((obj: { path: string }) => ({ path: obj.path }));
+        const tempAssets = foundImage.data.assets.map(
+          (obj: { path: string }) => ({ path: obj.path })
+        );
         const tempImage = await sharp(tempAssets[0].path).metadata();
 
         try {
           await this.imageProcessor.createImageWithLayers({
-            width: tempImage.width,
-            height: tempImage.height,
+            width:
+              this.projectId === "qZFGMWmOXpZDNt5W64mi"
+                ? 2048
+                : tempImage.width,
+            height:
+              this.projectId === "qZFGMWmOXpZDNt5W64mi"
+                ? 2048
+                : tempImage.height,
             outputPath,
             assets: tempAssets,
           });
-          return { id, renderData: [{ kind: "ImageRender@v1", data: { path: outputPath } }] };
+          return {
+            id,
+            renderData: [
+              { kind: "ImageRender@v1", data: { path: outputPath } },
+            ],
+          };
         } catch (error) {
           return {
             id,
@@ -109,12 +132,15 @@ export class ImageRenderer
               renders[id] = renderData;
             }
           } else {
-            console.error(`Error processing item with ID ${batch[index][0]}:`, result.reason);
+            console.error(
+              `Error processing item with ID ${batch[index][0]}:`,
+              result.reason
+            );
           }
         });
 
         processedCount += batch.length; // Update processedCount for the batch
-        if (processedCount >= (totalCount * nextUpdatePercent)/100) {
+        if (processedCount >= (totalCount * nextUpdatePercent) / 100) {
           await this.firebaseDB.updateGenerationPercent(
             this.projectId,
             (nextUpdatePercent / 10) * 8
