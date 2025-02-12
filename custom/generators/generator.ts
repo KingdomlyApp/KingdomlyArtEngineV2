@@ -86,8 +86,12 @@ export class ImageGenerator implements GeneratorInterface<ImageDnaInterface> {
             ? imageUrl.replaceAll(/%20/g, "")
             : imageUrl;
 
-          imageUrl = imageUrl.includes(".png")
-            ? imageUrl.replaceAll(".png", "")
+          imageUrl = imageUrl.toLowerCase().includes(".png")
+            ? imageUrl.replaceAll(/\.png/gi, "")
+            : imageUrl;
+
+          imageUrl = imageUrl.toLowerCase().includes(".mp4")
+            ? imageUrl.replaceAll(/\.mp4/gi, "")
             : imageUrl;
 
           imageUrl = imageUrl.includes(".")

@@ -179,7 +179,14 @@ async function GenerateCollection(req, res) {
           // Check if oneofones is downloaded already
           if (!uniqueOneOfOnes.includes(tempFileName)) {
             uniqueOneOfOnes.push(tempFileName);
-            const filePath = path.join(dirPath, `${tempFileName}.png`);
+            const filePath = path.join(
+              dirPath,
+              `${
+                tempFileName.toLowerCase().includes(".mp4")
+                  ? tempFileName
+                  : `${tempFileName}.png`
+              }`
+            );
             const file = fs.createWriteStream(filePath);
 
             downloadPromises.push(
@@ -363,21 +370,21 @@ async function GenerateCollection(req, res) {
     });
   }
 
-  // if (fs.existsSync(path.join(basePath, `tmp/${req.body.projectId}`))) {
-  //   fs.rmdirSync(
-  //     path.join(basePath, `tmp/${req.body.projectId}`),
-  //     { recursive: true, force: true },
-  //     (err) => {
-  //       if (err) {
-  //         throw err;
-  //       }
+  if (fs.existsSync(path.join(basePath, `tmp/${req.body.projectId}`))) {
+    fs.rmdirSync(
+      path.join(basePath, `tmp/${req.body.projectId}`),
+      { recursive: true, force: true },
+      (err) => {
+        if (err) {
+          throw err;
+        }
 
-  //       console.log(
-  //         `${req.body.projectId} folder has been generated successfully and now being deleted!`
-  //       );
-  //     }
-  //   );
-  // }
+        console.log(
+          `${req.body.projectId} folder has been generated successfully and now being deleted!`
+        );
+      }
+    );
+  }
 }
 
 module.exports = GenerateCollection;
