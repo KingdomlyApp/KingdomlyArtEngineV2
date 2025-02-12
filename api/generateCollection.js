@@ -204,6 +204,27 @@ async function GenerateCollection(req, res) {
             );
           }
         }
+
+        const dnaArray = Array.from(dnas);
+        if (dnaArray.length === 2) {
+          const firstToken = dnaArray[0];
+          const lastTokenNumber = parseInt(dnaArray[1].name.split("#")[1]);
+
+          const interpolatedList = [];
+          for (let i = 1; i <= lastTokenNumber; i++) {
+            interpolatedList.push({
+              ...firstToken,
+              name: `${firstToken.name.split("#")[0]}#${i}`,
+              description: firstToken.description,
+              dna: [],
+              rarity_score: firstToken.rarity_score,
+              ooos: {
+                ...firstToken.ooos,
+              },
+            });
+          }
+          dnaList.set(key, interpolatedList);
+        }
       } else if (key === "metadata_assets") {
         const dirPath = path.join(directoryPath, "/one_of_ones");
         if (fs.existsSync(dirPath)) {
@@ -342,21 +363,21 @@ async function GenerateCollection(req, res) {
     });
   }
 
-  if (fs.existsSync(path.join(basePath, `tmp/${req.body.projectId}`))) {
-    fs.rmdirSync(
-      path.join(basePath, `tmp/${req.body.projectId}`),
-      { recursive: true, force: true },
-      (err) => {
-        if (err) {
-          throw err;
-        }
+  // if (fs.existsSync(path.join(basePath, `tmp/${req.body.projectId}`))) {
+  //   fs.rmdirSync(
+  //     path.join(basePath, `tmp/${req.body.projectId}`),
+  //     { recursive: true, force: true },
+  //     (err) => {
+  //       if (err) {
+  //         throw err;
+  //       }
 
-        console.log(
-          `${req.body.projectId} folder has been generated successfully and now being deleted!`
-        );
-      }
-    );
-  }
+  //       console.log(
+  //         `${req.body.projectId} folder has been generated successfully and now being deleted!`
+  //       );
+  //     }
+  //   );
+  // }
 }
 
 module.exports = GenerateCollection;

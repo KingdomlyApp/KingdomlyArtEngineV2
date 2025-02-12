@@ -83,7 +83,15 @@ export class ImageGenerator implements GeneratorInterface<ImageDnaInterface> {
             : currentDnas.ooos?.url.split("/").pop()?.split(".png")[0] ?? "";
 
           imageUrl = imageUrl.includes("%20")
-            ? imageUrl.replace(/%20/g, "")
+            ? imageUrl.replaceAll(/%20/g, "")
+            : imageUrl;
+
+          imageUrl = imageUrl.includes(".png")
+            ? imageUrl.replaceAll(".png", "")
+            : imageUrl;
+
+          imageUrl = imageUrl.includes(".")
+            ? imageUrl.replaceAll(".", "")
             : imageUrl;
 
           const ooos_items = layerInputs[0].elements.filter(
