@@ -94,13 +94,14 @@ export class ImageGenerator implements GeneratorInterface<ImageDnaInterface> {
             ? imageUrl.replaceAll(/\.mp4/gi, "")
             : imageUrl;
 
-          imageUrl = imageUrl.includes(".")
-            ? imageUrl.replaceAll(".", "")
-            : imageUrl;
+          // imageUrl = imageUrl.includes(".")
+          //   ? imageUrl.replaceAll(".", "")
+          //   : imageUrl;
 
           const ooos_items = layerInputs[0].elements.filter(
             (item: any) => imageUrl === item.name
           );
+          // console.log(currentDnas.name);
 
           items[parseInt(currentDnas.name.split("#")[1])] = [
             {
